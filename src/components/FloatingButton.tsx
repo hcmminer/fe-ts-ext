@@ -4,6 +4,7 @@ export const FloatingButton = () => {
     const [position, setPosition] = useState({ x: window.innerWidth * 0.8, y: window.innerHeight * 0.5 });
     const [isDragging, setIsDragging] = useState(false);
     const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+    const [zIndex, setZIndex] = useState(1000); // Initial z-index
 
     const handleMouseDown = (e) => {
         setIsDragging(true);
@@ -11,6 +12,7 @@ export const FloatingButton = () => {
             x: e.clientX - position.x,
             y: e.clientY - position.y
         });
+        setZIndex(zIndex + 1); // Increase z-index on mouse down
     };
 
     const handleMouseMove = (e) => {
@@ -51,7 +53,7 @@ export const FloatingButton = () => {
                 top: `${position.y}px`,
                 touchAction: 'none',
                 userSelect: 'none',
-                zIndex: 50,
+                zIndex: zIndex, // Dynamically set z-index
             }}
             onMouseDown={handleMouseDown}
         >
