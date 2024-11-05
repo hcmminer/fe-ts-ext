@@ -55,9 +55,6 @@ export const FloatingButton = () => {
     const handleMouseUp = () => {
         clearSubButtonsTimeout();
         setIsDragging(false);
-        timeoutId = setTimeout(() => {
-            setShowSubButtons(false);
-        }, 1000);
     };
 
     useEffect(() => {
@@ -142,5 +139,3 @@ export const FloatingButton = () => {
         </div>
     );
 };
-
-export default FloatingButton;
