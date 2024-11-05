@@ -82,10 +82,10 @@ export const FloatingButton = () => {
     }, [isDragging, handleMouseMove]);
 
     const radius = 80; // Adjust the radius as needed for spacing
-    const totalButtons = subButtonsData.length;
+    const totalButtons = subButtonsData.length - 2; // Exclude the first and last button from even spacing
     const angleStart = Math.PI / 2; // 90 degrees
     const angleEnd = 3 * Math.PI / 2; // 270 degrees
-    const angleIncrement = (angleEnd - angleStart) / totalButtons; // Divide the semi-circle evenly
+    const angleIncrement = (angleEnd - angleStart) / (totalButtons + 1); // Include the spaces for the first and last buttons
 
     return (
         <div
@@ -115,7 +115,13 @@ export const FloatingButton = () => {
 
             {/* Sub Buttons */}
             {subButtonsData.map((button, index) => {
-                const angle = angleStart + angleIncrement * index; // Calculate angle for even distribution
+                // Position the first button at 90 degrees (top) and the last at 270 degrees (bottom)
+                const angle = index === 0
+                    ? angleStart // First button at 90 degrees
+                    : index === subButtonsData.length - 1
+                        ? angleEnd // Last button at 270 degrees
+                        : angleStart + angleIncrement * index; // Evenly spaced for middle buttons
+
                 const xOffset = Math.cos(angle) * radius;
                 const yOffset = Math.sin(angle) * radius;
 
