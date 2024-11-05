@@ -5,7 +5,18 @@ export const FloatingButton = () => {
     const [isDragging, setIsDragging] = useState(false);
     const [startPos, setStartPos] = useState({ x: 0, y: 0 });
     const [showSubButtons, setShowSubButtons] = useState(false);
-    let timeoutId = null; // Thay đổi ở đây để lưu trữ timeout
+    let timeoutId = null;
+
+    const subButtonsData = [
+        { bgColor: "bg-green-300", hoverColor: "hover:bg-green-400", iconPath: "M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53" },
+        { bgColor: "bg-green-300", hoverColor: "hover:bg-green-400", iconPath: "M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53" },
+        { bgColor: "bg-green-300", hoverColor: "hover:bg-green-400", iconPath: "M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53" },
+        { bgColor: "bg-green-300", hoverColor: "hover:bg-green-400", iconPath: "M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53" },
+        { bgColor: "bg-green-300", hoverColor: "hover:bg-green-400", iconPath: "M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53" },
+        { bgColor: "bg-green-300", hoverColor: "hover:bg-green-400", iconPath: "M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53" },
+
+        // Add more sub-button data here as needed
+    ];
 
     const clearSubButtonsTimeout = () => {
         if (timeoutId) {
@@ -15,7 +26,7 @@ export const FloatingButton = () => {
     };
 
     const handleMouseEnter = () => {
-        clearSubButtonsTimeout(); // Xóa timeout khi di chuột vào
+        clearSubButtonsTimeout();
         setShowSubButtons(true);
     };
 
@@ -32,25 +43,27 @@ export const FloatingButton = () => {
         setShowSubButtons(true);
         setStartPos({
             x: e.clientX - position.x,
-            y: e.clientY - position.y
+            y: e.clientY - position.y,
         });
     };
 
-    const handleMouseMove = useCallback((e) => {
-        if (!isDragging) return;
+    const handleMouseMove = useCallback(
+        (e) => {
+            if (!isDragging) return;
+            const newX = e.clientX - startPos.x;
+            const newY = e.clientY - startPos.y;
 
-        const newX = e.clientX - startPos.x;
-        const newY = e.clientY - startPos.y;
+            const maxX = window.innerWidth - 100;
+            const maxY = window.innerHeight - 100;
 
-        const maxX = window.innerWidth - 100;
-        const maxY = window.innerHeight - 100;
-
-        setPosition({
-            x: Math.min(Math.max(0, newX), maxX),
-            y: Math.min(Math.max(0, newY), maxY)
-        });
-        setShowSubButtons(true);
-    }, [isDragging, startPos]);
+            setPosition({
+                x: Math.min(Math.max(0, newX), maxX),
+                y: Math.min(Math.max(0, newY), maxY),
+            });
+            setShowSubButtons(true);
+        },
+        [isDragging, startPos]
+    );
 
     const handleMouseUp = () => {
         clearSubButtonsTimeout();
@@ -59,31 +72,36 @@ export const FloatingButton = () => {
 
     useEffect(() => {
         if (isDragging) {
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
+            window.addEventListener("mousemove", handleMouseMove);
+            window.addEventListener("mouseup", handleMouseUp);
             return () => {
-                window.removeEventListener('mousemove', handleMouseMove);
-                window.removeEventListener('mouseup', handleMouseUp);
+                window.removeEventListener("mousemove", handleMouseMove);
+                window.removeEventListener("mouseup", handleMouseUp);
             };
         }
     }, [isDragging, handleMouseMove]);
 
+    const radius = 80; // Adjust the radius as needed for spacing
+    const angleIncrement = (2 * Math.PI) / subButtonsData.length;
+
     return (
         <div
-            className={`group fixed ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+            className={`group fixed ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
             style={{
                 left: `${position.x}px`,
                 top: `${position.y}px`,
-                touchAction: 'none',
-                userSelect: 'none',
+                touchAction: "none",
+                userSelect: "none",
                 zIndex: 1000,
             }}
             onMouseDown={handleMouseDown}
         >
             {/* Main Button */}
-            <div onMouseEnter={handleMouseEnter}
-                 onMouseLeave={handleMouseLeave}
-                 className="relative text-white shadow-xl flex items-center justify-center p-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500">
+            <div
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                className="relative text-white shadow-xl flex items-center justify-center p-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500"
+            >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
                      stroke="currentColor" className="w-6 h-6 group-hover:rotate-90 transition-all duration-[0.6s]">
                     <path strokeLinecap="round" strokeLinejoin="round"
@@ -92,50 +110,38 @@ export const FloatingButton = () => {
                 </svg>
             </div>
 
-            {/* Sub Buttons Container */}
+            {/* Sub Buttons */}
+            {subButtonsData.map((button, index) => {
+                const angle = angleIncrement * index;
+                const xOffset = Math.cos(angle) * radius;
+                const yOffset = Math.sin(angle) * radius;
 
-                {/* Left Button */}
-                <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
-                    className={`absolute rounded-full transition-all  
-                       group-hover:scale-100
-                    -left-16 top-1/2 -translate-y-1/2
-                    flex p-2 hover:p-3 bg-green-300 hover:bg-green-400 text-white shadow-lg ${showSubButtons ? 'opacity-100' : 'opacity-0'}`}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
-                         stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round"
-                              d="M21 10.5h.375c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125H21M3.75 18h15A2.25 2.25 0 0021 15.75v-6a2.25 2.25 0 00-2.25-2.25h-15A2.25 2.25 0 001.5 9.75v6A2.25 2.25 0 003.75 18z"/>
-                    </svg>
-                </div>
-
-                {/* Top Button */}
-                <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
-                    className={`absolute rounded-full transition-all  
-                       group-hover:scale-100
-                    top-[-3.5rem] left-1/2 -translate-x-1/2
-                    flex p-2 hover:p-3 bg-blue-300 hover:bg-blue-400 text-white shadow-lg ${showSubButtons ? 'opacity-100' : 'opacity-0'}`}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
-                         stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round"
-                              d="M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53"/>
-                    </svg>
-                </div>
-
-                {/* Top Left Button */}
-                <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
-                    className={`absolute rounded-full transition-all  
-                       group-hover:scale-100
-                    -top-10 -left-10
-                    flex p-2 hover:p-3 bg-yellow-300 hover:bg-yellow-400 text-white shadow-lg ${showSubButtons ? 'opacity-100' : 'opacity-0'}`}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
-                         stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round"
-                              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
-                    </svg>
-                </div>
-
+                return (
+                    <div
+                        key={index}
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                        className={`absolute rounded-full transition-all transform 
+                                    ${showSubButtons ? "scale-100 opacity-100" : "scale-0 opacity-0"}
+                                    ${button.bgColor} ${button.hoverColor} p-2 hover:p-3 text-white shadow-lg`}
+                        style={{
+                            left: `${xOffset}px`,
+                            top: `${yOffset}px`,
+                        }}
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="1.5"
+                            stroke="currentColor"
+                            className="w-5 h-5"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" d={button.iconPath}/>
+                        </svg>
+                    </div>
+                );
+            })}
         </div>
     );
 };
