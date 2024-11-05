@@ -1,35 +1,42 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 export const FloatingButton = () => {
-    const [position, setPosition] = useState({x: window.innerWidth * 0.8, y: window.innerHeight * 0.5});
+    const [position, setPosition] = useState({ x: window.innerWidth * 0.8, y: window.innerHeight * 0.5 });
     const [isDragging, setIsDragging] = useState(false);
-    const [startPos, setStartPos] = useState({x: 0, y: 0});
-    const [zIndex, setZIndex] = useState(1000); // Initial z-index
-    const [showSubButtons, setShowSubButtons] = useState(false); // Thêm state cho các nút phụ
+    const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+    const [showSubButtons, setShowSubButtons] = useState(false);
+    let timeoutId = null; // Thay đổi ở đây để lưu trữ timeout
+
+    const clearSubButtonsTimeout = () => {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+        }
+    };
 
     const handleMouseEnter = () => {
+        clearSubButtonsTimeout(); // Xóa timeout khi di chuột vào
         setShowSubButtons(true);
     };
 
     const handleMouseLeave = () => {
-        setTimeout(() => {
+        clearSubButtonsTimeout();
+        timeoutId = setTimeout(() => {
             setShowSubButtons(false);
-        },1000)
+        }, 1000);
     };
 
     const handleMouseDown = (e) => {
+        clearSubButtonsTimeout();
         setIsDragging(true);
         setShowSubButtons(true);
-        setTimeout(() => {
-            setShowSubButtons(false);
-        },1000)// Hiện các nút phụ khi kéo
         setStartPos({
             x: e.clientX - position.x,
             y: e.clientY - position.y
         });
     };
 
-    const handleMouseMove = (e) => {
+    const handleMouseMove = useCallback((e) => {
         if (!isDragging) return;
 
         const newX = e.clientX - startPos.x;
@@ -43,14 +50,14 @@ export const FloatingButton = () => {
             y: Math.min(Math.max(0, newY), maxY)
         });
         setShowSubButtons(true);
-    };
+    }, [isDragging, startPos]);
 
     const handleMouseUp = () => {
+        clearSubButtonsTimeout();
         setIsDragging(false);
-        setShowSubButtons(true);
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
             setShowSubButtons(false);
-        },1000)// Hiện các nút phụ khi kéo
+        }, 1000);
     };
 
     useEffect(() => {
@@ -62,7 +69,7 @@ export const FloatingButton = () => {
                 window.removeEventListener('mouseup', handleMouseUp);
             };
         }
-    }, [isDragging, startPos]);
+    }, [isDragging, handleMouseMove]);
 
     return (
         <div
@@ -72,7 +79,7 @@ export const FloatingButton = () => {
                 top: `${position.y}px`,
                 touchAction: 'none',
                 userSelect: 'none',
-                zIndex: zIndex, // Dynamically set z-index
+                zIndex: 1000,
             }}
             onMouseDown={handleMouseDown}
         >
@@ -87,7 +94,6 @@ export const FloatingButton = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
             </div>
-
 
             {/* Sub Buttons Container */}
 
@@ -134,7 +140,6 @@ export const FloatingButton = () => {
                 </div>
 
         </div>
-
     );
 };
 
