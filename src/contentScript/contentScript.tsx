@@ -2,9 +2,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "../static/global.css";
+import {Card} from "../components/Card"
 
 const root = document.createElement('div')
 document.body.appendChild(root)
-ReactDOM.render( <h1 className="text-3xl font-bold text-blue-500 text-center p-4">
-    qqqqqqqqqqqqqqqqqqqqqqqqqqq
-</h1>, root)
+ReactDOM.render( <Card />, root)
