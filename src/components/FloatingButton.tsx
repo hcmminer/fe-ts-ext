@@ -82,7 +82,7 @@ export const FloatingButton = () => {
     }, [isDragging, handleMouseMove]);
 
     const radius = 80; // Adjust the radius as needed for spacing
-    const angleIncrement = (2 * Math.PI) / subButtonsData.length;
+    const angleIncrement = (Math.PI) / (subButtonsData.length + 1); // Use half the circle
 
     return (
         <div
@@ -112,7 +112,7 @@ export const FloatingButton = () => {
 
             {/* Sub Buttons */}
             {subButtonsData.map((button, index) => {
-                const angle = angleIncrement * index;
+                const angle = Math.PI / 2 + angleIncrement * index; // Start at 90 degrees
                 const xOffset = Math.cos(angle) * radius;
                 const yOffset = Math.sin(angle) * radius;
 
