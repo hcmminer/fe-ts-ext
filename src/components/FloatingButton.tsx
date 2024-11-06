@@ -69,9 +69,12 @@ export const FloatingButton = () => {
     const handleClickToTranslate = async () => {
         const elementsToTranslate = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, a, span');
 
-        // Filter out any element that is nested within another matching element
+        // Lọc các phần tử chưa có lớp 'translated' và chỉ lấy các phần tử bậc cao
         const topLevelTextElements = Array.from(elementsToTranslate).filter((el) => {
-            return !Array.from(elementsToTranslate).some((parentEl) => parentEl !== el && parentEl.contains(el));
+            return (
+                !el.classList.contains('translated') &&
+                !Array.from(elementsToTranslate).some((parentEl) => parentEl !== el && parentEl.contains(el))
+            );
         });
 
         for (const element of topLevelTextElements) {
@@ -94,9 +97,12 @@ export const FloatingButton = () => {
                             // Chèn phần tử bản dịch vào sau phần tử gốc
                             element.appendChild(translatedElement);
 
+                            // Thêm lớp 'translated' để đánh dấu phần tử đã được dịch
+                            element.classList.add('translated');
+
                             // Xử lý đặc biệt cho thẻ `<a>`
                             if (element.tagName === 'A') {
-                                // Cập nhật thuộc tính href của thẻ `<a>`
+                                // Cập nhật thuộc tính href của thẻ `<a>` nếu cần
                             }
                         }
                     } catch (error) {
@@ -105,7 +111,8 @@ export const FloatingButton = () => {
                 }
             }
         }
-    }
+    };
+
 
 
     return (
