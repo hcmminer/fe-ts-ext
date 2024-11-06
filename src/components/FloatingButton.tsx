@@ -76,22 +76,33 @@ export const FloatingButton = () => {
             if (originalText) {
                 try {
                     // Gọi hàm translate để dịch văn bản
-                    const translation = await translate(originalText, 'en', 'vi', null, true);
+                    const translation = await translate(originalText, 'en', 'vi', null, false);
 
                     if (translation && translation.targetText) {
-                        // Tạo một phần tử mới (ví dụ: một thẻ div) để chứa bản dịch
+                        // Tạo một phần tử chứa cả thẻ gốc và bản dịch
+                        const container = document.createElement('div');
+                        container.style.display = 'flex';
+                        container.style.flexDirection = 'column';
+
+                        // Di chuyển thẻ gốc vào phần tử chứa
+                        link.parentNode?.insertBefore(container, link);
+                        container.appendChild(link);
+
+                        // Tạo phần tử mới để chứa bản dịch và thêm vào container
                         const translatedTextElement = document.createElement('div');
                         translatedTextElement.innerText = translation.targetText;
+                        translatedTextElement.style.marginTop = '4px';
+                        translatedTextElement.style.color = 'gray';
 
-                        // Chèn phần tử chứa bản dịch dưới thẻ gốc
-                        link.insertAdjacentElement('afterend', translatedTextElement);
+                        container.appendChild(translatedTextElement);
                     }
                 } catch (error) {
                     console.error(`Translation failed for text "${originalText}":`, error);
                 }
             }
         }
-    }
+    };
+
 
     return (
         <div onMouseEnter={handleMouseEnter}
