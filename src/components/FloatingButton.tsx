@@ -67,12 +67,11 @@ export const FloatingButton = () => {
 
     const [status, setStatus] = useState(null); // null, success, error
     const handleClickToTranslate = async () => {
-        // Select elements likely to contain text
-        const allTextElements = document.querySelectorAll('a, p, h1, h2, h3, h4, h5, h6, div, span');
+        const elementsToTranslate = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, a, span');
 
         // Filter out any element that is nested within another matching element
-        const topLevelTextElements = Array.from(allTextElements).filter((el) => {
-            return !Array.from(allTextElements).some((parentEl) => parentEl !== el && parentEl.contains(el));
+        const topLevelTextElements = Array.from(elementsToTranslate).filter((el) => {
+            return !Array.from(elementsToTranslate).some((parentEl) => parentEl !== el && parentEl.contains(el));
         });
 
         for (const element of topLevelTextElements) {
