@@ -84,18 +84,21 @@ export const FloatingButton = () => {
                         // Call the translate function to translate the text
                         const translation = await translate(originalText, 'en', 'vi', null, false);
 
-                        if (translation && translation.targetText) {
-                            // Create a new span element to contain the translated text
-                            const translatedTextElement = document.createElement('span');
+                        if (translation.targetText) {
+                            // Tạo phần tử bản dịch
+                            const translatedElement = document.createElement('span');
+                            translatedElement.innerText = translation.targetText;
+                            translatedElement.style.display = 'block';
+                            translatedElement.style.color = 'gray';
+                            translatedElement.style.fontSize = '0.9em';
 
-                            translatedTextElement.innerText = translation.targetText;
-                            translatedTextElement.style.display = 'block'; // Display as block for alignment
-                            translatedTextElement.style.color = 'gray';
-                            translatedTextElement.style.fontSize = '0.9em';
-                            translatedTextElement.style.marginTop = '4px'; // Adds spacing above the translation
+                            // Chèn phần tử bản dịch vào sau phần tử gốc
+                            element.appendChild(translatedElement);
 
-                            // Append the translated text element directly below the original text
-                            element.appendChild(translatedTextElement);
+                            // Xử lý đặc biệt cho thẻ `<a>`
+                            if (element.tagName === 'A') {
+                                // Cập nhật thuộc tính href của thẻ `<a>`
+                            }
                         }
                     } catch (error) {
                         console.error(`Translation failed for text "${originalText}":`, error);
@@ -103,10 +106,7 @@ export const FloatingButton = () => {
                 }
             }
         }
-    };
-
-
-
+    }
 
 
     return (
