@@ -79,22 +79,18 @@ export const FloatingButton = () => {
                     const translation = await translate(originalText, 'en', 'vi', null, false);
 
                     if (translation && translation.targetText) {
-                        // Tạo một phần tử chứa cả thẻ gốc và bản dịch
-                        const container = document.createElement('div');
-                        container.style.display = 'flex';
-                        container.style.flexDirection = 'column';
+                        // Thêm dòng mới dưới nội dung gốc mà không thay đổi DOM
+                        const br = document.createElement('br'); // Tạo thẻ <br> để xuống dòng
+                        const translatedTextElement = document.createElement('span');
 
-                        // Di chuyển thẻ gốc vào phần tử chứa
-                        link.parentNode?.insertBefore(container, link);
-                        container.appendChild(link);
-
-                        // Tạo phần tử mới để chứa bản dịch và thêm vào container
-                        const translatedTextElement = document.createElement('div');
                         translatedTextElement.innerText = translation.targetText;
-                        translatedTextElement.style.marginTop = '4px';
-                        translatedTextElement.style.color = 'gray';
+                        translatedTextElement.style.display = 'block'; // Căn chỉnh xuống dòng
+                        translatedTextElement.style.color = 'gray'; // Phân biệt màu
+                        translatedTextElement.style.fontSize = '0.9em'; // Nhỏ hơn nội dung gốc một chút
 
-                        container.appendChild(translatedTextElement);
+                        // Thêm thẻ <br> và phần tử bản dịch sau nội dung gốc
+                        link.appendChild(br);
+                        link.appendChild(translatedTextElement);
                     }
                 } catch (error) {
                     console.error(`Translation failed for text "${originalText}":`, error);
@@ -102,6 +98,7 @@ export const FloatingButton = () => {
             }
         }
     };
+
 
 
     return (
