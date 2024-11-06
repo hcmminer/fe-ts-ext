@@ -32,43 +32,28 @@ export const FloatingButton = () => {
 
     const handleMouseLeave = () => {
         clearSubButtonsTimeout();
-        timeoutId = setTimeout(() => {
-            setShowSubButtons(false);
-        }, 1000);
+        timeoutId = setTimeout(() => setShowSubButtons(false), 1000);
     };
 
     const handleMouseDown = (e) => {
         clearSubButtonsTimeout();
         setIsDragging(true);
-        setShowSubButtons(true);
-        setStartPos({
-            x: e.clientX - position.x,
-            y: e.clientY - position.y,
+        setStartPos({ x: e.clientX - position.x, y: e.clientY - position.y });
+    };
+
+    const handleMouseMove = useCallback((e) => {
+        if (!isDragging) return;
+
+        const maxX = window.innerWidth - 100;
+        const maxY = window.innerHeight - 100;
+
+        setPosition({
+            x: Math.min(Math.max(0, e.clientX - startPos.x), maxX),
+            y: Math.min(Math.max(0, e.clientY - startPos.y), maxY),
         });
-    };
+    }, [isDragging, startPos]);
 
-    const handleMouseMove = useCallback(
-        (e) => {
-            if (!isDragging) return;
-            const newX = e.clientX - startPos.x;
-            const newY = e.clientY - startPos.y;
-
-            const maxX = window.innerWidth - 100;
-            const maxY = window.innerHeight - 100;
-
-            setPosition({
-                x: Math.min(Math.max(0, newX), maxX),
-                y: Math.min(Math.max(0, newY), maxY),
-            });
-            setShowSubButtons(true);
-        },
-        [isDragging, startPos]
-    );
-
-    const handleMouseUp = () => {
-        clearSubButtonsTimeout();
-        setIsDragging(false);
-    };
+    const handleMouseUp = () => setIsDragging(false);
 
     useEffect(() => {
         if (isDragging) {
@@ -114,39 +99,18 @@ export const FloatingButton = () => {
             </div>
 
             {/* Sub Buttons */}
-            {subButtonsData.map((button, index) => {
-                // Position the first button at 90 degrees (top) and the last at 270 degrees (bottom)
-                const angle = index === 0
-                    ? angleStart // First button at 90 degrees
-                    : index === subButtonsData.length - 1
-                        ? angleEnd // Last button at 270 degrees
-                        : angleStart + angleIncrement * index; // Evenly spaced for middle buttons
-
-                const xOffset = Math.cos(angle) * radius;
-                const yOffset = Math.sin(angle) * radius;
-
+            {showSubButtons && subButtonsData.map((data, index) => {
+                const angle = Math.PI / 2 + (index + 1) * angleIncrement;
+                const xOffset = radius * Math.cos(angle);
+                const yOffset = radius * Math.sin(angle);
                 return (
                     <div
                         key={index}
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
-                        className={`absolute rounded-full transition-all transform 
-                                    ${showSubButtons ? "scale-100 opacity-100" : "scale-0 opacity-0"}
-                                    ${button.bgColor} ${button.hoverColor} p-2 hover:p-3 text-white shadow-lg`}
-                        style={{
-                            left: `${xOffset}px`,
-                            top: `${yOffset}px`,
-                        }}
+                        className={`${data.bgColor} ${data.hoverColor} w-12 h-12 flex items-center justify-center rounded-full absolute transition-transform duration-300`}
+                        style={{ top: yOffset, left: xOffset }}
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth="1.5"
-                            stroke="currentColor"
-                            className="w-5 h-5"
-                        >
-                            <path strokeLinecap="round" strokeLinejoin="round" d={button.iconPath}/>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6">
+                            <path d={data.iconPath} />
                         </svg>
                     </div>
                 );
