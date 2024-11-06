@@ -89,7 +89,7 @@ export const FloatingButton = () => {
 
     return (
         <div
-            className={`group fixed ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+            className={`fixed ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
             style={{
                 left: `${position.x}px`,
                 top: `${position.y}px`,
