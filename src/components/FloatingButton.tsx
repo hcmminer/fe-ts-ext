@@ -65,7 +65,8 @@ export const FloatingButton = () => {
     const angleIncrement = Math.PI / (subButtonsData.length + 1);
 
     return (
-        <div
+        <div onMouseEnter={handleMouseEnter}
+             onMouseLeave={handleMouseLeave}
             className={`fixed ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
             style={{
                 left: `${position.x}px`,
@@ -78,8 +79,6 @@ export const FloatingButton = () => {
         >
             {/* Main Button */}
             <div
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
                 className="relative text-white shadow-xl flex items-center justify-center p-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6 transition-all duration-[0.6s]">
@@ -94,8 +93,7 @@ export const FloatingButton = () => {
                 const xOffset = radius * Math.cos(angle);
                 const yOffset = radius * Math.sin(angle);
                 return (
-                    <div onMouseEnter={handleMouseEnter}
-                         onMouseLeave={handleMouseLeave}
+                    <div
                         key={index}
                         className={`${data.bgColor} ${data.hoverColor} w-12 h-12 flex items-center justify-center rounded-full absolute transition-transform duration-300`}
                         style={{ top: yOffset, left: xOffset }}
