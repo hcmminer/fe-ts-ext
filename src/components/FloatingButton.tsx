@@ -67,37 +67,45 @@ export const FloatingButton = () => {
 
     const [status, setStatus] = useState(null); // null, success, error
     const handleClickToTranslate = async () => {
-        // Lấy tất cả các thẻ a trong trang
-        const links = document.querySelectorAll('a');
+        // Select elements likely to contain text
+        const allTextElements = document.querySelectorAll('a, p, h1, h2, h3, h4, h5, h6, div, span');
 
-        for (let link of links) {
-            const originalText = link.innerText.trim();
+        // Filter out any element that is nested within another matching element
+        const topLevelTextElements = Array.from(allTextElements).filter((el) => {
+            return !Array.from(allTextElements).some((parentEl) => parentEl !== el && parentEl.contains(el));
+        });
 
-            if (originalText) {
-                try {
-                    // Gọi hàm translate để dịch văn bản
-                    const translation = await translate(originalText, 'en', 'vi', null, false);
+        for (const element of topLevelTextElements) {
+            if (element instanceof HTMLElement) {
+                const originalText = element.innerText.trim();
 
-                    if (translation && translation.targetText) {
-                        // Thêm dòng mới dưới nội dung gốc mà không thay đổi DOM
-                        const br = document.createElement('br'); // Tạo thẻ <br> để xuống dòng
-                        const translatedTextElement = document.createElement('span');
+                if (originalText) {
+                    try {
+                        // Call the translate function to translate the text
+                        const translation = await translate(originalText, 'en', 'vi', null, false);
 
-                        translatedTextElement.innerText = translation.targetText;
-                        translatedTextElement.style.display = 'block'; // Căn chỉnh xuống dòng
-                        translatedTextElement.style.color = 'gray'; // Phân biệt màu
-                        translatedTextElement.style.fontSize = '0.9em'; // Nhỏ hơn nội dung gốc một chút
+                        if (translation && translation.targetText) {
+                            // Create a new span element to contain the translated text
+                            const translatedTextElement = document.createElement('span');
 
-                        // Thêm thẻ <br> và phần tử bản dịch sau nội dung gốc
-                        link.appendChild(br);
-                        link.appendChild(translatedTextElement);
+                            translatedTextElement.innerText = translation.targetText;
+                            translatedTextElement.style.display = 'block'; // Display as block for alignment
+                            translatedTextElement.style.color = 'gray';
+                            translatedTextElement.style.fontSize = '0.9em';
+                            translatedTextElement.style.marginTop = '4px'; // Adds spacing above the translation
+
+                            // Append the translated text element directly below the original text
+                            element.appendChild(translatedTextElement);
+                        }
+                    } catch (error) {
+                        console.error(`Translation failed for text "${originalText}":`, error);
                     }
-                } catch (error) {
-                    console.error(`Translation failed for text "${originalText}":`, error);
                 }
             }
         }
     };
+
+
 
 
 
