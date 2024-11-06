@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useCallback} from "react";
+import {translate} from "../utils/translate";
 
 export const FloatingButton = () => {
     const [position, setPosition] = useState({x: window.innerWidth * 0.8, y: window.innerHeight * 0.5});
@@ -64,6 +65,34 @@ export const FloatingButton = () => {
     const radius = 80;
     const angleIncrement = Math.PI / (subButtonsData.length + 1);
 
+    const [status, setStatus] = useState(null); // null, success, error
+    const handleClickToTranslate = async () => {
+        // Lấy tất cả các thẻ a trong trang
+        const links = document.querySelectorAll('a');
+
+        for (let link of links) {
+            const originalText = link.innerText.trim();
+
+            if (originalText) {
+                try {
+                    // Gọi hàm translate để dịch văn bản
+                    const translation = await translate(originalText, 'en', 'vi', null, true);
+
+                    if (translation && translation.targetText) {
+                        // Tạo một phần tử mới (ví dụ: một thẻ div) để chứa bản dịch
+                        const translatedTextElement = document.createElement('div');
+                        translatedTextElement.innerText = translation.targetText;
+
+                        // Chèn phần tử chứa bản dịch dưới thẻ gốc
+                        link.insertAdjacentElement('afterend', translatedTextElement);
+                    }
+                } catch (error) {
+                    console.error(`Translation failed for text "${originalText}":`, error);
+                }
+            }
+        }
+    }
+
     return (
         <div onMouseEnter={handleMouseEnter}
              onMouseLeave={handleMouseLeave}
@@ -78,8 +107,10 @@ export const FloatingButton = () => {
              onMouseDown={handleMouseDown}
         >
             {/* Main Button */}
-            <div
-                className="relative text-white shadow-xl flex items-center justify-center p-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500"
+            <div onClick={handleClickToTranslate}
+                 className={`relative text-white shadow-xl flex items-center justify-center p-3 rounded-full 
+                    ${status === 'success' ? 'bg-green-500' : ''}
+                    ${status === 'error' ? 'bg-red-500' : 'bg-gradient-to-r from-cyan-500 to-blue-500'}`}
             >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
                      stroke="currentColor" className="w-6 h-6 transition-all duration-[0.6s]">
@@ -100,7 +131,8 @@ export const FloatingButton = () => {
                         className={`${data.bgColor} ${data.hoverColor} w-12 h-12 flex items-center justify-center rounded-full absolute transition-transform duration-300`}
                         style={{top: yOffset, left: xOffset}}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor"
                              className="w-6 h-6">
                             <path d={data.iconPath}/>
                         </svg>
@@ -109,4 +141,5 @@ export const FloatingButton = () => {
             })}
         </div>
     );
+
 };
