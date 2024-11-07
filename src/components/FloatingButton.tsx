@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useCallback} from "react";
 import {translate} from "../utils/translate";
+import {splitIntoSentences} from "../utils/sentenceSplitter";
 
 export const FloatingButton = () => {
     const [position, setPosition] = useState({x: window.innerWidth * 0.8, y: window.innerHeight * 0.5});
@@ -69,9 +70,9 @@ export const FloatingButton = () => {
 
     const handleClickToTranslate = async () => {
         // Select all target elements within <pre> tags for translation
-        const elementsToTranslate = Array.from(document.querySelectorAll('pre p, pre h1, pre h2, pre h3, pre h4, pre h5, pre h6, pre a, pre span')) as HTMLElement[];
+        const elementsToTranslate = Array.from(document.querySelectorAll('pre p')) as HTMLElement[];
 
-        // Filter to get only top-level text elements without 'top-level-text' class and without translated parents
+        // Filter to get only top-level <p> elements that don't have the 'top-level-text' class or translated parents
         const topLevelTextElements = elementsToTranslate.filter(el => {
             return (
                 el instanceof HTMLElement &&
@@ -79,33 +80,55 @@ export const FloatingButton = () => {
                 !elementsToTranslate.some(parentEl => parentEl !== el && parentEl.contains(el))
             );
         });
+        console.log(topLevelTextElements)
 
-        // Mark and translate each top-level element
+        // Mark and translate each top-level <p> element
         for (const element of topLevelTextElements) {
             try {
                 element.classList.add('top-level-text'); // Add class for identification
 
-                // Clone and clean the node of number-only comments
+                // Clone the node to avoid modifying the original element's content
                 const cloneNode = element.cloneNode(true) as HTMLElement;
                 cloneNode.querySelectorAll('.num-comment').forEach(child => {
-                    if (/^\d+$/.test(child.textContent?.trim() || '')) child.remove();
+                    if (/^\d+$/.test(child.textContent?.trim() || '')) {
+                        child.remove()};
                 });
 
-                // Proceed if there's text to translate
-                if (cloneNode.innerText) {
-                    const response = await translate(cloneNode.innerText, 'en', 'vi', null, false);
-                    if (response.targetText) {
-                        cloneNode.innerText = response.targetText;
+                // Split the text by lines, filter out empty lines, and then join back
+                cloneNode.innerText = cloneNode.innerText
+                    .split('\n')              // Tách từng dòng
+                    .filter(line => line.trim() !== '') // Loại bỏ các dòng trống (sau khi đã loại bỏ khoảng trắng)
+                    .join('\n');              // Ghép lại thành đoạn văn với mỗi dòng là một câu mới
 
-                        // Style and insert the translated clone after the original
-                        Object.assign(cloneNode.style, { color: 'gray', fontSize: '0.9em', display: 'block' });
-                        element.insertAdjacentElement("afterend", cloneNode);
-                        setStatus("success");
+                // Split the paragraph into sentences
+                const sentences = splitIntoSentences(cloneNode.innerText);
+
+                // Clear the original content to replace it with sentence-by-sentence translations
+                element.innerHTML = '';
+
+                for (const sentence of sentences) {
+                    if (sentence.trim()) {
+                        // Translate each sentence individually
+                        const response = await translate(sentence, 'en', 'vi', null, false);
+
+                        // Create elements for the sentence and its translation
+                        const sentenceElement = document.createElement('div');
+                        sentenceElement.innerText = sentence;
+                        sentenceElement.style.fontWeight = 'bold'; // Style original sentence
+
+                        const translationElement = document.createElement('div');
+                        translationElement.innerText = response.targetText;
+                        Object.assign(translationElement.style, { color: 'gray', fontSize: '0.9em' }); // Style translated text
+
+                        // Append both elements to the paragraph
+                        element.appendChild(sentenceElement);
+                        element.appendChild(translationElement);
                     }
                 }
+                setStatus("success");
             } catch (error) {
                 setStatus(error);
-                console.error(`Translation failed for text "${element.innerText}":`, error);
+                console.error(`Translation failed for element:`, error);
             }
         }
     };
