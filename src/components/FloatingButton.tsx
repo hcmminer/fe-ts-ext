@@ -67,7 +67,21 @@ export const FloatingButton = () => {
 
     const [status, setStatus] = useState(null); // null, success, error
     const handleClickToTranslate = async () => {
-        const elementsToTranslate = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, a, span');
+        // Lấy tất cả các phần tử <pre>
+        const preElements = document.querySelectorAll('pre');
+
+        // Khởi tạo mảng để chứa các phần tử cần dịch trong các thẻ <pre>
+        let elementsToTranslate = [];
+
+        // Duyệt qua từng phần tử <pre>
+        preElements.forEach(pre => {
+            // Lấy tất cả các phần tử con có các thẻ cụ thể trong mỗi <pre>
+            const elementsInPre = pre.querySelectorAll('p, h1, h2, h3, h4, h5, h6, a, span');
+
+            // Thêm các phần tử con này vào mảng elementsToTranslate
+            elementsToTranslate = elementsToTranslate.concat(Array.from(elementsInPre));
+        });
+        // Bây giờ elementsToTranslate chứa tất cả các thẻ con cần dịch bên trong <pre>
 
         // Filter out elements that have not been translated and are not children of any translated elements
         const topLevelTextElements = Array.from(elementsToTranslate).filter((el) => {
@@ -107,7 +121,7 @@ export const FloatingButton = () => {
 
 
                 if (cloneNode instanceof HTMLElement) {
-                    if(cloneNode.innerText){
+                    if (cloneNode.innerText) {
                         const response = await translate(cloneNode.innerText, 'en', 'vi', null, false);
                         if (response.targetText) {
                             cloneNode.innerText = response.targetText;
@@ -121,10 +135,6 @@ export const FloatingButton = () => {
                             element.insertAdjacentElement("afterend", cloneNode);
                         }
                     }
-                }
-                const headerContainer = document.getElementById("header-container");
-                if (headerContainer) {
-                    headerContainer.remove();
                 }
 
             } catch (error) {
