@@ -69,7 +69,7 @@ export const FloatingButton = () => {
     const handleClickToTranslate = async () => {
         const elementsToTranslate = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, a, span');
 
-        // Lọc các phần tử chưa có lớp 'translated' và chỉ lấy các phần tử bậc cao
+        // Filter out elements that have not been translated and are not children of any translated elements
         const topLevelTextElements = Array.from(elementsToTranslate).filter((el) => {
             return (
                 !el.classList.contains('translated') &&
@@ -87,22 +87,22 @@ export const FloatingButton = () => {
                         const translation = await translate(originalText, 'en', 'vi', null, false);
 
                         if (translation.targetText) {
-                            // Tạo phần tử bản dịch
+                            // Create a new translated span element
                             const translatedElement = document.createElement('span');
                             translatedElement.innerText = translation.targetText;
                             translatedElement.style.display = 'block';
                             translatedElement.style.color = 'gray';
                             translatedElement.style.fontSize = '0.9em';
 
-                            // Chèn phần tử bản dịch vào sau phần tử gốc
+                            // Append the translated span to the original element
                             element.appendChild(translatedElement);
 
-                            // Thêm lớp 'translated' để đánh dấu phần tử đã được dịch
-                            element.classList.add('translated');
+                            // Mark this element and all its children as 'translated'
+                            markAsTranslated(element);
 
-                            // Xử lý đặc biệt cho thẻ `<a>`
+                            // Special handling for <a> tags if needed
                             if (element.tagName === 'A') {
-                                // Cập nhật thuộc tính href của thẻ `<a>` nếu cần
+                                // Update <a> href attribute if necessary
                             }
                         }
                     } catch (error) {
@@ -113,7 +113,13 @@ export const FloatingButton = () => {
         }
     };
 
-
+// Helper function to mark element and all its descendants as 'translated'
+    const markAsTranslated = (element) => {
+        element.classList.add('translated');
+        element.querySelectorAll('*').forEach((child) => {
+            child.classList.add('translated');
+        });
+    };
 
     return (
         <div onMouseEnter={handleMouseEnter}
