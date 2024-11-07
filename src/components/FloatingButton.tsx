@@ -89,7 +89,6 @@ export const FloatingButton = () => {
             const originalElement = element;
 
             const originalText = getTextContentRecursively(originalElement);
-            console.log(">>",originalText);
 
             if (originalText) {
                 try {
@@ -97,18 +96,21 @@ export const FloatingButton = () => {
                     const translation = await translate(originalText, 'en', 'vi', null, false);
 
                     if (translation.targetText) {
-                        // Clone the original element
-                        const translatedElement = originalElement.cloneNode(true) as HTMLElement;
-                        translatedElement.innerText = translation.targetText;
+                        const translatedElement = originalElement.cloneNode(true);
+                        // Check if translatedElement is an Element before using it
+                        // Check if translatedElement is an HTMLElement to access innerText
+                        if (translatedElement instanceof HTMLElement) {
+                            translatedElement.innerText = translation.targetText;
 
-                        // Style the translated element
-                        translatedElement.style.color = 'gray';
-                        translatedElement.style.fontSize = '0.9em';
-                        translatedElement.style.display = 'block';
+                            // Style the translated element if needed
+                            translatedElement.style.color = 'gray';
+                            translatedElement.style.fontSize = '0.9em';
+                            translatedElement.style.display = 'block';
 
-                        // Insert the translated clone after the original element
-                        originalElement.insertAdjacentElement('afterend', translatedElement);
-                        markAsHideOrRemove(translatedElement)
+                            // Insert the translated clone after the original node
+                            originalElement.insertAdjacentElement("afterend", translatedElement);
+                            markAsHideOrRemove(translatedElement);
+                        }
                     }
                 } catch (error) {
                     console.error(`Translation failed for text "${originalText}":`, error);
