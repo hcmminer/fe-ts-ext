@@ -86,76 +86,51 @@ export const FloatingButton = () => {
         });
 
         for (const element of topLevelTextElements) {
-            const originalElement = element;
 
-            const originalText = getTextContentRecursively(originalElement);
+            try {
+                const cloneNode = element.cloneNode(true);
 
-            if (originalText) {
-                try {
-                    // Call the translate function to translate the text
-                    const translation = await translate(originalText, 'en', 'vi', null, false);
+                // Kiểm tra nếu cloneNode là một Element để dùng querySelectorAll
+                if (cloneNode instanceof Element) {
+                    // Tìm tất cả các phần tử có class 'num-comment' trong cloneNode
+                    const numCommentElements = cloneNode.querySelectorAll('.num-comment');
 
-                    if (translation.targetText) {
-                        const translatedElement = originalElement.cloneNode(true);
-                        // Check if translatedElement is an Element before using it
-                        // Check if translatedElement is an HTMLElement to access innerText
-                        if (translatedElement instanceof HTMLElement) {
-                            translatedElement.innerText = translation.targetText;
-
-                            // Style the translated element if needed
-                            translatedElement.style.color = 'gray';
-                            translatedElement.style.fontSize = '0.9em';
-                            translatedElement.style.display = 'block';
-
-                            // Insert the translated clone after the original node
-                            originalElement.insertAdjacentElement("afterend", translatedElement);
-                            markAsHideOrRemove(translatedElement);
+                    numCommentElements.forEach((child) => {
+                        // Kiểm tra nếu nội dung của phần tử chỉ chứa số
+                        if (/^\d+$/.test(child.textContent?.trim() || '')) {
+                            child.remove(); // Xóa phần tử nếu chỉ chứa số
                         }
+                    });
+                }
+
+                // Bây giờ cloneNode đã loại bỏ các phần tử chỉ chứa số
+
+
+                if (cloneNode instanceof HTMLElement) {
+                    const response = await translate(cloneNode.innerText, 'en', 'vi', null, false);
+                    if (response.targetText) {
+                        cloneNode.innerText = response.targetText;
+
+                        // Style the translated element if needed
+                        cloneNode.style.color = 'gray';
+                        cloneNode.style.fontSize = '0.9em';
+                        cloneNode.style.display = 'block';
+
+                        // Insert the translated clone after the original node
+                        element.insertAdjacentElement("afterend", cloneNode);
                     }
-                } catch (error) {
-                    console.error(`Translation failed for text "${originalText}":`, error);
                 }
+                const headerContainer = document.getElementById("header-container");
+                if (headerContainer) {
+                    headerContainer.remove();
+                }
+
+            } catch (error) {
+                console.error(`Translation failed for text "${element}":`, error);
             }
         }
     };
 
-    const markAsHideOrRemove = (element, remove = false) => {
-        element.classList.add('translated');
-        element.querySelectorAll('button').forEach((child) => {
-            // Check if the button's text content is only numbers
-            const isNumericContent = /^\d+$/.test(child.textContent.trim());
-            if (isNumericContent) {
-                if (remove) {
-                    // Remove the button element from the DOM
-                    child.remove();
-                } else {
-                    // Add the Tailwind 'hidden' class to hide the element
-                    child.classList.add('hidden');
-                }
-            }
-        });
-    };
-
-    const getTextContentRecursively = (element: Element): string => {
-        // Skip if the element is UI-related or a wrapper we want to ignore
-        if (
-            /^\d+$/.test(element.textContent?.trim() || '' )
-        ) {
-            return ''; // Skip this element entirely
-        }
-
-        // Initialize text with the current element's text, if it's an HTMLElement
-        let text = element instanceof HTMLElement && element.innerText
-            ? element.innerText.trim()
-            : '';
-
-        // Loop through child elements and concatenate their text if they're not excluded
-        for (const child of element.children) {
-            text += ' ' + getTextContentRecursively(child);
-        }
-
-        return text.trim();
-    };
 
     return (
         <div onMouseEnter={handleMouseEnter}
