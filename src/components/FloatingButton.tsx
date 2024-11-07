@@ -72,46 +72,47 @@ export const FloatingButton = () => {
         // Filter out elements that have not been translated and are not children of any translated elements
         const topLevelTextElements = Array.from(elementsToTranslate).filter((el) => {
             return (
+                el instanceof HTMLElement &&
                 !el.classList.contains('translated') &&
                 !Array.from(elementsToTranslate).some((parentEl) => parentEl !== el && parentEl.contains(el))
             );
         });
 
         for (const element of topLevelTextElements) {
-            if (element instanceof HTMLElement) {
-                const originalText = element.innerText.trim();
+            const originalElement = element as HTMLElement;  // Cast element to HTMLElement
 
-                if (originalText) {
-                    try {
-                        // Call the translate function to translate the text
-                        const translation = await translate(originalText, 'en', 'vi', null, false);
+            const originalText = originalElement.innerText.trim();
 
-                        if (translation.targetText) {
-                            // Create a new translated span element
-                            const translatedElement = document.createElement('span');
-                            translatedElement.innerText = translation.targetText;
-                            translatedElement.style.display = 'block';
-                            translatedElement.style.color = 'gray';
-                            translatedElement.style.fontSize = '0.9em';
+            if (originalText) {
+                try {
+                    // Call the translate function to translate the text
+                    const translation = await translate(originalText, 'en', 'vi', null, false);
 
-                            // Append the translated span to the original element
-                            element.appendChild(translatedElement);
+                    if (translation.targetText) {
+                        // Clone the original element
+                        const translatedElement = originalElement.cloneNode(true) as HTMLElement;
+                        translatedElement.innerText = translation.targetText;
 
-                            // Mark this element and all its children as 'translated'
-                            markAsTranslated(element);
+                        // Style the translated element
+                        translatedElement.style.color = 'gray';
+                        translatedElement.style.fontSize = '0.9em';
+                        translatedElement.style.display = 'block';
 
-                            // Special handling for <a> tags if needed
-                            if (element.tagName === 'A') {
-                                // Update <a> href attribute if necessary
-                            }
-                        }
-                    } catch (error) {
-                        console.error(`Translation failed for text "${originalText}":`, error);
+                        // Insert the translated clone after the original element
+                        originalElement.insertAdjacentElement('afterend', translatedElement);
+
+                        // Mark this element and all its children as 'translated'
+                        markAsTranslated(originalElement);
+                        markAsTranslated(translatedElement);
                     }
+                } catch (error) {
+                    console.error(`Translation failed for text "${originalText}":`, error);
                 }
             }
         }
     };
+
+
 
 // Helper function to mark element and all its descendants as 'translated'
     const markAsTranslated = (element) => {
