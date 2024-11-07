@@ -86,9 +86,10 @@ export const FloatingButton = () => {
         });
 
         for (const element of topLevelTextElements) {
-            const originalElement = element as HTMLElement;  // Cast element to HTMLElement
+            const originalElement = element;
 
-            const originalText = originalElement.innerText.trim();
+            const originalText = getTextContentRecursively(originalElement);
+            console.log(">>",originalText);
 
             if (originalText) {
                 try {
@@ -133,6 +134,28 @@ export const FloatingButton = () => {
         });
     };
 
+    const getTextContentRecursively = (element: Element): string => {
+        // Skip if the element is UI-related or a wrapper we want to ignore
+        if (
+            element.classList.contains('component-wrapper') ||
+            element.classList.contains('comment-marker') ||
+            element instanceof HTMLButtonElement
+        ) {
+            return ''; // Skip this element entirely
+        }
+
+        // Initialize text with the current element's text, if it's an HTMLElement
+        let text = element instanceof HTMLElement && element.innerText
+            ? element.innerText.trim()
+            : '';
+
+        // Loop through child elements and concatenate their text if they're not excluded
+        for (const child of element.children) {
+            text += ' ' + getTextContentRecursively(child);
+        }
+
+        return text.trim();
+    };
 
     return (
         <div onMouseEnter={handleMouseEnter}
