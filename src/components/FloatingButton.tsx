@@ -139,9 +139,7 @@ export const FloatingButton = () => {
     const getTextContentRecursively = (element: Element): string => {
         // Skip if the element is UI-related or a wrapper we want to ignore
         if (
-            element.classList.contains('component-wrapper') ||
-            element.classList.contains('comment-marker') ||
-            element instanceof HTMLButtonElement
+            /^\d+$/.test(element.textContent?.trim() || '' )
         ) {
             return ''; // Skip this element entirely
         }
