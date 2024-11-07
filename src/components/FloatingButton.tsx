@@ -73,9 +73,16 @@ export const FloatingButton = () => {
         const topLevelTextElements = Array.from(elementsToTranslate).filter((el) => {
             return (
                 el instanceof HTMLElement &&
-                !el.classList.contains('translated') &&
+                !el.classList.contains('top-level-text') &&
                 !Array.from(elementsToTranslate).some((parentEl) => parentEl !== el && parentEl.contains(el))
             );
+        });
+
+        // Add a 'top-level-text' class to each top-level element
+        topLevelTextElements.forEach((el) => {
+            if (el instanceof HTMLElement) {
+                el.classList.add('top-level-text');
+            }
         });
 
         for (const element of topLevelTextElements) {
@@ -100,10 +107,7 @@ export const FloatingButton = () => {
 
                         // Insert the translated clone after the original element
                         originalElement.insertAdjacentElement('afterend', translatedElement);
-
-                        // Mark this element and all its children as 'translated'
-                        markAsTranslated(originalElement);
-                        markAsTranslated(translatedElement);
+                        markAsHideOrRemove(translatedElement)
                     }
                 } catch (error) {
                     console.error(`Translation failed for text "${originalText}":`, error);
@@ -112,15 +116,23 @@ export const FloatingButton = () => {
         }
     };
 
-
-
-// Helper function to mark element and all its descendants as 'translated'
-    const markAsTranslated = (element) => {
+    const markAsHideOrRemove = (element, remove = false) => {
         element.classList.add('translated');
-        element.querySelectorAll('*').forEach((child) => {
-            child.classList.add('translated');
+        element.querySelectorAll('button').forEach((child) => {
+            // Check if the button's text content is only numbers
+            const isNumericContent = /^\d+$/.test(child.textContent.trim());
+            if (isNumericContent) {
+                if (remove) {
+                    // Remove the button element from the DOM
+                    child.remove();
+                } else {
+                    // Add the Tailwind 'hidden' class to hide the element
+                    child.classList.add('hidden');
+                }
+            }
         });
     };
+
 
     return (
         <div onMouseEnter={handleMouseEnter}
