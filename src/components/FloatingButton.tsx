@@ -107,17 +107,19 @@ export const FloatingButton = () => {
 
 
                 if (cloneNode instanceof HTMLElement) {
-                    const response = await translate(cloneNode.innerText, 'en', 'vi', null, false);
-                    if (response.targetText) {
-                        cloneNode.innerText = response.targetText;
+                    if(cloneNode.innerText){
+                        const response = await translate(cloneNode.innerText, 'en', 'vi', null, false);
+                        if (response.targetText) {
+                            cloneNode.innerText = response.targetText;
 
-                        // Style the translated element if needed
-                        cloneNode.style.color = 'gray';
-                        cloneNode.style.fontSize = '0.9em';
-                        cloneNode.style.display = 'block';
+                            // Style the translated element if needed
+                            cloneNode.style.color = 'gray';
+                            cloneNode.style.fontSize = '0.9em';
+                            cloneNode.style.display = 'block';
 
-                        // Insert the translated clone after the original node
-                        element.insertAdjacentElement("afterend", cloneNode);
+                            // Insert the translated clone after the original node
+                            element.insertAdjacentElement("afterend", cloneNode);
+                        }
                     }
                 }
                 const headerContainer = document.getElementById("header-container");
