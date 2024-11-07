@@ -106,7 +106,9 @@ export const FloatingButton = () => {
                 // Clear the original content to replace it with sentence-by-sentence translations
                 element.innerHTML = '';
 
-                for (const sentence of sentences) {
+                for (let i = 0; i < sentences.length; i++) {
+                    const sentence = sentences[i];
+
                     if (sentence.trim()) {
                         // Translate each sentence individually
                         const response = await translate(sentence, 'en', 'vi', null, false);
@@ -117,7 +119,13 @@ export const FloatingButton = () => {
                         sentenceElement.style.fontWeight = 'bold'; // Style original sentence
 
                         const translationElement = document.createElement('div');
-                        translationElement.innerText = response.targetText;
+
+                        // Add "\n\n" only for the last sentence
+                        const translationText = (i === sentences.length - 1)
+                            ? response.targetText + "\n\n"
+                            : response.targetText;
+
+                        translationElement.innerText = translationText;
                         Object.assign(translationElement.style, { color: 'gray', fontSize: '0.9em' }); // Style translated text
 
                         // Append both elements to the paragraph
