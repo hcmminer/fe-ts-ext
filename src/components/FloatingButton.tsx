@@ -66,83 +66,49 @@ export const FloatingButton = () => {
     const angleIncrement = Math.PI / (subButtonsData.length + 1);
 
     const [status, setStatus] = useState(null); // null, success, error
+
     const handleClickToTranslate = async () => {
-        // Lấy tất cả các phần tử <pre>
-        const preElements = document.querySelectorAll('pre');
+        // Select all target elements within <pre> tags for translation
+        const elementsToTranslate = Array.from(document.querySelectorAll('pre p, pre h1, pre h2, pre h3, pre h4, pre h5, pre h6, pre a, pre span')) as HTMLElement[];
 
-        // Khởi tạo mảng để chứa các phần tử cần dịch trong các thẻ <pre>
-        let elementsToTranslate = [];
-
-        // Duyệt qua từng phần tử <pre>
-        preElements.forEach(pre => {
-            // Lấy tất cả các phần tử con có các thẻ cụ thể trong mỗi <pre>
-            const elementsInPre = pre.querySelectorAll('p, h1, h2, h3, h4, h5, h6, a, span');
-
-            // Thêm các phần tử con này vào mảng elementsToTranslate
-            elementsToTranslate = elementsToTranslate.concat(Array.from(elementsInPre));
-        });
-        // Bây giờ elementsToTranslate chứa tất cả các thẻ con cần dịch bên trong <pre>
-
-        // Filter out elements that have not been translated and are not children of any translated elements
-        const topLevelTextElements = Array.from(elementsToTranslate).filter((el) => {
+        // Filter to get only top-level text elements without 'top-level-text' class and without translated parents
+        const topLevelTextElements = elementsToTranslate.filter(el => {
             return (
                 el instanceof HTMLElement &&
                 !el.classList.contains('top-level-text') &&
-                !Array.from(elementsToTranslate).some((parentEl) => parentEl !== el && parentEl.contains(el))
+                !elementsToTranslate.some(parentEl => parentEl !== el && parentEl.contains(el))
             );
         });
 
-        // Add a 'top-level-text' class to each top-level element
-        topLevelTextElements.forEach((el) => {
-            if (el instanceof HTMLElement) {
-                el.classList.add('top-level-text');
-            }
-        });
-
+        // Mark and translate each top-level element
         for (const element of topLevelTextElements) {
-
             try {
-                const cloneNode = element.cloneNode(true);
+                element.classList.add('top-level-text'); // Add class for identification
 
-                // Kiểm tra nếu cloneNode là một Element để dùng querySelectorAll
-                if (cloneNode instanceof Element) {
-                    // Tìm tất cả các phần tử có class 'num-comment' trong cloneNode
-                    const numCommentElements = cloneNode.querySelectorAll('.num-comment');
+                // Clone and clean the node of number-only comments
+                const cloneNode = element.cloneNode(true) as HTMLElement;
+                cloneNode.querySelectorAll('.num-comment').forEach(child => {
+                    if (/^\d+$/.test(child.textContent?.trim() || '')) child.remove();
+                });
 
-                    numCommentElements.forEach((child) => {
-                        // Kiểm tra nếu nội dung của phần tử chỉ chứa số
-                        if (/^\d+$/.test(child.textContent?.trim() || '')) {
-                            child.remove(); // Xóa phần tử nếu chỉ chứa số
-                        }
-                    });
-                }
+                // Proceed if there's text to translate
+                if (cloneNode.innerText) {
+                    const response = await translate(cloneNode.innerText, 'en', 'vi', null, false);
+                    if (response.targetText) {
+                        cloneNode.innerText = response.targetText;
 
-                // Bây giờ cloneNode đã loại bỏ các phần tử chỉ chứa số
-
-
-                if (cloneNode instanceof HTMLElement) {
-                    if (cloneNode.innerText) {
-                        const response = await translate(cloneNode.innerText, 'en', 'vi', null, false);
-                        if (response.targetText) {
-                            cloneNode.innerText = response.targetText;
-
-                            // Style the translated element if needed
-                            cloneNode.style.color = 'gray';
-                            cloneNode.style.fontSize = '0.9em';
-                            cloneNode.style.display = 'block';
-
-                            // Insert the translated clone after the original node
-                            element.insertAdjacentElement("afterend", cloneNode);
-                        }
+                        // Style and insert the translated clone after the original
+                        Object.assign(cloneNode.style, { color: 'gray', fontSize: '0.9em', display: 'block' });
+                        element.insertAdjacentElement("afterend", cloneNode);
+                        setStatus("success");
                     }
                 }
-
             } catch (error) {
-                console.error(`Translation failed for text "${element}":`, error);
+                setStatus(error);
+                console.error(`Translation failed for text "${element.innerText}":`, error);
             }
         }
     };
-
 
     return (
         <div onMouseEnter={handleMouseEnter}
