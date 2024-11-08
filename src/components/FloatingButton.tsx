@@ -2,6 +2,9 @@ import React, {useState, useEffect, useCallback} from "react";
 import {translate} from "../utils/translate";
 import {bingTranslate} from "../utils/bingTranslate";
 import {splitIntoSentences} from "../utils/sentenceSplitter";
+import {TranslationBox} from "../../src/components/TranslationBox";
+import {Button} from "../../src/components/ui/button";
+import {TranslationBoxProps} from "./TranslationBox"
 
 export const FloatingButton = () => {
     const [position, setPosition] = useState({x: window.innerWidth * 0.8, y: window.innerHeight * 0.5});
@@ -91,7 +94,9 @@ export const FloatingButton = () => {
                 const cloneNode = element.cloneNode(true) as HTMLElement;
                 cloneNode.querySelectorAll('.num-comment').forEach(child => {
                     if (/^\d+$/.test(child.textContent?.trim() || '')) {
-                        child.remove()};
+                        child.remove()
+                    }
+                    ;
                 });
 
                 // Split the text by lines, filter out empty lines, and then join back
@@ -126,7 +131,7 @@ export const FloatingButton = () => {
                             : response.targetText;
 
                         translationElement.innerText = translationText;
-                        Object.assign(translationElement.style, { color: 'gray', fontSize: '0.9em' }); // Style translated text
+                        Object.assign(translationElement.style, {color: 'gray', fontSize: '0.9em'}); // Style translated text
 
                         // Append both elements to the paragraph
                         element.appendChild(sentenceElement);
@@ -141,34 +146,21 @@ export const FloatingButton = () => {
         }
     };
 
-    // Lắng nghe tin nhắn từ background.js
-    chrome.runtime.onMessage.addListener((message) => {
-        if (message.action === "displayTranslation") {
-            // Tạo một hộp hiển thị kết quả dịch
-            const translationBox = document.createElement("div");
-            translationBox.style.position = "fixed";
-            translationBox.style.bottom = "20px";
-            translationBox.style.right = "20px";
-            translationBox.style.maxWidth = "300px";
-            translationBox.style.padding = "10px";
-            translationBox.style.backgroundColor = "#fff";
-            translationBox.style.border = "1px solid #ccc";
-            translationBox.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.2)";
-            translationBox.style.zIndex = "1000";
-            translationBox.style.fontSize = "14px";
-            translationBox.innerHTML = `
-            <strong>Translation:</strong> ${message.text}<br/>
-            <strong>Detected Language:</strong> ${message.sourceLang}<br/>
-            ${message.transliteration ? `<strong>Transliteration:</strong> ${message.transliteration}<br/>` : ""}
-        `;
+    const [translation, setTranslation] = useState<TranslationBoxProps | null>(null);
 
-            // Thêm hộp dịch vào body của trang
-            document.body.appendChild(translationBox);
-
-            // Tự động xóa hộp dịch sau 5 giây
-            setTimeout(() => translationBox.remove(), 5000);
-        }
-    });
+    useEffect(() => {
+        // Lắng nghe tin nhắn từ background script
+        chrome.runtime.onMessage.addListener((message) => {
+            if (message.action === "displayTranslation") {
+                setTranslation({
+                    text: message.text,
+                    sourceLang: message.sourceLang,
+                    transliteration: message.transliteration,
+                    onClose: () => setTranslation(null),
+                });
+            }
+        });
+    }, []);
 
 
     return (
@@ -184,6 +176,10 @@ export const FloatingButton = () => {
              }}
              onMouseDown={handleMouseDown}
         >
+            <div className=" bottom-5 right-5 z-50">
+                <Button variant="link">Translate</Button>
+                {translation && <TranslationBox {...translation} />}
+            </div>
             {/* Main Button */}
             <div onClick={handleClickToTranslate}
                  className={`relative text-white shadow-xl flex items-center justify-center p-3 rounded-full 

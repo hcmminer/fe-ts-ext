@@ -29,6 +29,10 @@ module.exports = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+      'react/jsx-runtime': require.resolve('react/jsx-runtime'), // Thêm dòng này
+    },
   },
   plugins: [
     new CleanWebpackPlugin({
