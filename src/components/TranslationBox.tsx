@@ -8,9 +8,9 @@ export interface TranslationBoxProps {
     onClose: () => void;
 }
 
-function debounce(func, delay) {
-    let timer;
-    return function (...args) {
+function debounce(func: { (event: any): void; apply?: any; }, delay: number) {
+    let timer: NodeJS.Timeout;
+    return function (...args: any) {
         clearTimeout(timer);
         timer = setTimeout(() => func.apply(this, args), delay);
     };
@@ -21,7 +21,7 @@ export const TranslationBox = () => {
 
     useEffect(() => {
         // Lắng nghe message từ background script
-        const messageListener = (message) => {
+        const messageListener = (message: { action: string; text: any; sourceLang: any; transliteration: any; }) => {
             if (message.action === "displayTranslation") {
                 setTranslation({
                     text: message.text,
