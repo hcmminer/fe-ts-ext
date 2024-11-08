@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Card, CardHeader, CardContent, CardTitle } from "../components/ui/card";
 
 export interface TranslationBoxProps {
@@ -8,12 +8,20 @@ export interface TranslationBoxProps {
     onClose: () => void;
 }
 
+function debounce(func, delay) {
+    let timer;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
 export const TranslationBox = () => {
     const [translation, setTranslation] = useState<TranslationBoxProps | null>(null);
 
     useEffect(() => {
-        // Listen for messages from background script
-        chrome.runtime.onMessage.addListener((message) => {
+        // Lắng nghe message từ background script
+        const messageListener = (message) => {
             if (message.action === "displayTranslation") {
                 setTranslation({
                     text: message.text,
@@ -22,23 +30,47 @@ export const TranslationBox = () => {
                     onClose: () => setTranslation(null),
                 });
             }
-        });
+        };
+
+        // Đăng ký listener
+        chrome.runtime.onMessage.addListener(messageListener);
+
+        // Hủy listener khi component bị unmounted
+        return () => {
+            chrome.runtime.onMessage.removeListener(messageListener);
+        };
     }, []);
 
-    document.addEventListener("click", (event) => {
-        const selection = window.getSelection()?.toString().trim();
+    // Debounced function to handle document click events
+    const handleDocumentClick = useCallback(
+        debounce((event) => {
+            const selection = window.getSelection()?.toString().trim();
+            if (selection && chrome.runtime) {
+                // Kiểm tra xem extension context có hợp lệ không
+                try {
+                    chrome.runtime.sendMessage({
+                        action: "translateText",
+                        text: selection,
+                    });
+                } catch (error) {
+                    console.error("Error sending message to background script:", error);
+                }
+            }
+        }, 300), // delay của debounce là 300ms, có thể điều chỉnh
+        []
+    );
 
-        // Kiểm tra xem người dùng có chọn văn bản không
-        if (selection) {
-            // Gửi văn bản đã chọn đến background script để dịch
-            chrome.runtime.sendMessage({
-                action: "translateText",
-                text: selection
-            });
-        }
-    });
+    useEffect(() => {
+        // Đăng ký sự kiện click
+        document.addEventListener("click", handleDocumentClick);
 
-    // Render only if translation data exists
+        // Hủy đăng ký sự kiện click khi component unmounts
+        return () => {
+            document.removeEventListener("click", handleDocumentClick);
+        };
+    }, [handleDocumentClick]);
+
+    // Chỉ render khi có dữ liệu dịch
     if (!translation) return null;
 
     return (

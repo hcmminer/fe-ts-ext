@@ -30,21 +30,40 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     }
 });
 
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "translateText" && message.text) {
-        // Gọi hàm dịch, ví dụ `bingTranslate`, từ văn bản được chọn
-        const translation = await bingTranslate(message.text, "auto", "vi");
+        // Gọi API dịch
+        bingTranslate(message.text, "auto", "vi")
+            .then((translation) => {
+                if (translation) {
+                    // Gửi kết quả dịch về cho content script và gọi sendResponse để kết thúc
+                    chrome.tabs.sendMessage(sender.tab.id, {
+                        action: "displayTranslation",
+                        text: translation.targetText,
+                        sourceLang: translation.detectedLang,
+                        transliteration: translation.transliteration
+                    });
 
-        // Nếu dịch thành công, gửi bản dịch lại cho content script để hiển thị
-        if (translation) {
-            chrome.tabs.sendMessage(sender.tab.id, {
-                action: "displayTranslation",
-                text: translation.targetText,
-                sourceLang: translation.detectedLang,
-                transliteration: translation.transliteration
+                    // Kết thúc bằng sendResponse
+                    sendResponse({
+                        success: true,
+                        text: translation.targetText,
+                        sourceLang: translation.detectedLang,
+                        transliteration: translation.transliteration,
+                    });
+                } else {
+                    console.error("Translation failed.");
+                    sendResponse({ success: false, error: "Translation failed" });
+                }
+            })
+            .catch((error) => {
+                console.error("Error during translation:", error);
+                sendResponse({ success: false, error: error.message });
             });
-        } else {
-            console.error("Translation failed.");
-        }
+
+        // return true để giữ kênh mở
+        return true;
     }
 });
+
+
