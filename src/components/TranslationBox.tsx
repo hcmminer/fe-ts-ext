@@ -25,6 +25,19 @@ export const TranslationBox = () => {
         });
     }, []);
 
+    document.addEventListener("click", (event) => {
+        const selection = window.getSelection()?.toString().trim();
+
+        // Kiểm tra xem người dùng có chọn văn bản không
+        if (selection) {
+            // Gửi văn bản đã chọn đến background script để dịch
+            chrome.runtime.sendMessage({
+                action: "translateText",
+                text: selection
+            });
+        }
+    });
+
     // Render only if translation data exists
     if (!translation) return null;
 

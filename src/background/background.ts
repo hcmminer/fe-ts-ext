@@ -29,3 +29,22 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         }
     }
 });
+
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+    if (message.action === "translateText" && message.text) {
+        // Gọi hàm dịch, ví dụ `bingTranslate`, từ văn bản được chọn
+        const translation = await bingTranslate(message.text, "auto", "en");
+
+        // Nếu dịch thành công, gửi bản dịch lại cho content script để hiển thị
+        if (translation) {
+            chrome.tabs.sendMessage(sender.tab.id, {
+                action: "displayTranslation",
+                text: translation.targetText,
+                sourceLang: translation.detectedLang,
+                transliteration: translation.transliteration
+            });
+        } else {
+            console.error("Translation failed.");
+        }
+    }
+});
