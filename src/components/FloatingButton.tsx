@@ -2,9 +2,6 @@ import React, {useState, useEffect, useCallback} from "react";
 import {translate} from "../utils/translate";
 import {bingTranslate} from "../utils/bingTranslate";
 import {splitIntoSentences} from "../utils/sentenceSplitter";
-import {TranslationBox} from "../../src/components/TranslationBox";
-import {Button} from "../../src/components/ui/button";
-import {TranslationBoxProps} from "./TranslationBox"
 
 export const FloatingButton = () => {
     const [position, setPosition] = useState({x: window.innerWidth * 0.8, y: window.innerHeight * 0.5});
@@ -146,22 +143,6 @@ export const FloatingButton = () => {
         }
     };
 
-    const [translation, setTranslation] = useState<TranslationBoxProps | null>(null);
-
-    useEffect(() => {
-        // Lắng nghe tin nhắn từ background script
-        chrome.runtime.onMessage.addListener((message) => {
-            if (message.action === "displayTranslation") {
-                setTranslation({
-                    text: message.text,
-                    sourceLang: message.sourceLang,
-                    transliteration: message.transliteration,
-                    onClose: () => setTranslation(null),
-                });
-            }
-        });
-    }, []);
-
 
     return (
         <div onMouseEnter={handleMouseEnter}
@@ -176,10 +157,6 @@ export const FloatingButton = () => {
              }}
              onMouseDown={handleMouseDown}
         >
-            <div className=" bottom-5 right-5 z-50">
-                <Button variant="link">Translate</Button>
-                {translation && <TranslationBox {...translation} />}
-            </div>
             {/* Main Button */}
             <div onClick={handleClickToTranslate}
                  className={`relative text-white shadow-xl flex items-center justify-center p-3 rounded-full 

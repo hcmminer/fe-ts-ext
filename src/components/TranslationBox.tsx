@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardHeader, CardContent, CardTitle } from "../components/ui/card";
 
 export interface TranslationBoxProps {
@@ -8,17 +8,25 @@ export interface TranslationBoxProps {
     onClose: () => void;
 }
 
-export const TranslationBox: React.FC<TranslationBoxProps> = ({
-                                                                  text,
-                                                                  sourceLang,
-                                                                  transliteration,
-                                                                  onClose,
-                                                              }) => {
+export const TranslationBox = () => {
+    const [translation, setTranslation] = useState<TranslationBoxProps | null>(null);
+
     useEffect(() => {
-        // Tự động đóng hộp dịch sau 5 giây
-        const timer = setTimeout(onClose, 5000);
-        return () => clearTimeout(timer);
-    }, [onClose]);
+        // Listen for messages from background script
+        chrome.runtime.onMessage.addListener((message) => {
+            if (message.action === "displayTranslation") {
+                setTranslation({
+                    text: message.text,
+                    sourceLang: message.sourceLang,
+                    transliteration: message.transliteration,
+                    onClose: () => setTranslation(null),
+                });
+            }
+        });
+    }, []);
+
+    // Render only if translation data exists
+    if (!translation) return null;
 
     return (
         <Card className="fixed bottom-5 right-5 max-w-sm z-50 shadow-lg">
@@ -26,10 +34,10 @@ export const TranslationBox: React.FC<TranslationBoxProps> = ({
                 <CardTitle>Translation</CardTitle>
             </CardHeader>
             <CardContent>
-                <p><strong>Translation:</strong> {text}</p>
-                <p><strong>Detected Language:</strong> {sourceLang}</p>
-                {transliteration && (
-                    <p><strong>Transliteration:</strong> {transliteration}</p>
+                <p><strong>Translation:</strong> {translation.text}</p>
+                <p><strong>Detected Language:</strong> {translation.sourceLang}</p>
+                {translation.transliteration && (
+                    <p><strong>Transliteration:</strong> {translation.transliteration}</p>
                 )}
             </CardContent>
         </Card>
