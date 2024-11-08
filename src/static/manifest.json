@@ -13,7 +13,10 @@
     "default_title": "Weather Extension",
     "default_icon": "icon.png"
   },
-  "permissions": ["alarms", "contextMenus", "storage"],
+  "permissions": ["alarms", "contextMenus", "storage",  "scripting"],
+  "host_permissions": [
+    "https://www.bing.com/*"
+  ],
   "options_page": "options.html",
   "background": {
     "service_worker": "background.js"

@@ -1,9 +1,9 @@
-// Define types for translation response
 interface TranslationResponse {
   targetText: string;
   sourceLang: string;
   targetLang: string;
   transliteration?: string | null;
+  pronunciation?: string | null;
   dict?: string | null;
 }
 
@@ -25,11 +25,12 @@ const translate = async (
       sourceLang: sourceLang,
       targetLang: targetLang,
       transliteration: null,
+      pronunciation: null,
       dict: null,
     };
   }
 
-  // Actual API call if not mocking
+  // Prepare API call with required params
   const params = new URLSearchParams({
     client: "gtx",
     q: text,
@@ -37,16 +38,22 @@ const translate = async (
     tl: targetLang,
     dj: "1",
     hl: targetLang,
-  }).toString() + "&dt=rm&dt=bd&dt=t";
+  }).toString() + "&dt=rm&dt=bd&dt=t&dt=qc&dt=ss";
 
   try {
     const response = await fetch(`${apiUrl}?${params}`);
     const json = await response.json();
+    console.log(json)
 
-    // Handle response
+    // Extract relevant details from JSON response
     const targetText = json.sentences?.map((sentence: { trans: string }) => sentence.trans).join(" ");
     const transliteration = json.sentences
         ?.map((sentence: { src_translit: string }) => sentence.src_translit)
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+    const pronunciation = json.sentences
+        ?.map((sentence: { src_pronunciation: string }) => sentence.src_pronunciation)
         .filter(Boolean)
         .join(" ")
         .trim();
@@ -56,8 +63,9 @@ const translate = async (
 
     return {
       targetText,
-      transliteration,
-      dict,
+      transliteration: transliteration || null,
+      pronunciation: pronunciation || null,
+      dict: dict || null,
       sourceLang: json.src,
       targetLang,
     };
@@ -67,4 +75,4 @@ const translate = async (
   }
 };
 
-export {translate};
+export { translate };

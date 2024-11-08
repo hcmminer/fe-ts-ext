@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useCallback} from "react";
 import {translate} from "../utils/translate";
+import {bingTranslate} from "../utils/bingTranslate";
 import {splitIntoSentences} from "../utils/sentenceSplitter";
 
 export const FloatingButton = () => {
@@ -80,7 +81,6 @@ export const FloatingButton = () => {
                 !elementsToTranslate.some(parentEl => parentEl !== el && parentEl.contains(el))
             );
         });
-        console.log(topLevelTextElements)
 
         // Mark and translate each top-level <p> element
         for (const element of topLevelTextElements) {
@@ -111,7 +111,7 @@ export const FloatingButton = () => {
 
                     if (sentence.trim()) {
                         // Translate each sentence individually
-                        const response = await translate(sentence, 'en', 'vi', null, false);
+                        const response = await bingTranslate(sentence, 'en', 'vi');
 
                         // Create elements for the sentence and its translation
                         const sentenceElement = document.createElement('div');
@@ -141,6 +141,36 @@ export const FloatingButton = () => {
         }
     };
 
+    // Lắng nghe tin nhắn từ background.js
+    chrome.runtime.onMessage.addListener((message) => {
+        if (message.action === "displayTranslation") {
+            // Tạo một hộp hiển thị kết quả dịch
+            const translationBox = document.createElement("div");
+            translationBox.style.position = "fixed";
+            translationBox.style.bottom = "20px";
+            translationBox.style.right = "20px";
+            translationBox.style.maxWidth = "300px";
+            translationBox.style.padding = "10px";
+            translationBox.style.backgroundColor = "#fff";
+            translationBox.style.border = "1px solid #ccc";
+            translationBox.style.boxShadow = "0px 0px 10px rgba(0, 0, 0, 0.2)";
+            translationBox.style.zIndex = "1000";
+            translationBox.style.fontSize = "14px";
+            translationBox.innerHTML = `
+            <strong>Translation:</strong> ${message.text}<br/>
+            <strong>Detected Language:</strong> ${message.sourceLang}<br/>
+            ${message.transliteration ? `<strong>Transliteration:</strong> ${message.transliteration}<br/>` : ""}
+        `;
+
+            // Thêm hộp dịch vào body của trang
+            document.body.appendChild(translationBox);
+
+            // Tự động xóa hộp dịch sau 5 giây
+            setTimeout(() => translationBox.remove(), 5000);
+        }
+    });
+
+
     return (
         <div onMouseEnter={handleMouseEnter}
              onMouseLeave={handleMouseLeave}
@@ -150,7 +180,7 @@ export const FloatingButton = () => {
                  top: `${position.y}px`,
                  touchAction: "none",
                  userSelect: "none",
-                 zIndex: 1000,
+                 zIndex: 99999,
              }}
              onMouseDown={handleMouseDown}
         >
