@@ -1,14 +1,30 @@
-import React, {useState, useEffect, useCallback} from "react";
-import {translate} from "../utils/translate";
-import {bingTranslate} from "../utils/bingTranslate";
-import {splitIntoSentences} from "../utils/sentenceSplitter";
+import React, { useState, useEffect, useCallback } from "react";
+import { splitIntoSentences } from "../utils/sentenceSplitter";
+
+// Đảm bảo rằng bạn đã có `TranslationBoxProps` định nghĩa kiểu dữ liệu
+export interface TranslationBoxProps {
+    text: string;
+    sourceLang: string;
+    transliteration?: string | null;
+}
+
+function debounce(func: (event: any) => void, delay: number) {
+    let timer: NodeJS.Timeout;
+    return function (...args: any) {
+        clearTimeout(timer);
+        timer = setTimeout(() => func.apply(this, args), delay);
+    };
+}
 
 export const FloatingButton = () => {
-    const [position, setPosition] = useState({x: window.innerWidth * 0.8, y: window.innerHeight * 0.5});
+    const [position, setPosition] = useState({ x: window.innerWidth * 0.8, y: window.innerHeight * 0.5 });
     const [isDragging, setIsDragging] = useState(false);
-    const [startPos, setStartPos] = useState({x: 0, y: 0});
+    const [startPos, setStartPos] = useState({ x: 0, y: 0 });
     const [showSubButtons, setShowSubButtons] = useState(false);
-    let timeoutId = null;
+    const [status, setStatus] = useState<"success" | "error" | null>(null);
+    const [translation, setTranslation] = useState<TranslationBoxProps | null>(null);
+
+    let timeoutId: NodeJS.Timeout | null = null;
 
     const subButtonsData = Array(5).fill({
         bgColor: "bg-green-300",
@@ -33,13 +49,13 @@ export const FloatingButton = () => {
         timeoutId = setTimeout(() => setShowSubButtons(false), 1000);
     };
 
-    const handleMouseDown = (e) => {
+    const handleMouseDown = (e: React.MouseEvent) => {
         clearSubButtonsTimeout();
         setIsDragging(true);
-        setStartPos({x: e.clientX - position.x, y: e.clientY - position.y});
+        setStartPos({ x: e.clientX - position.x, y: e.clientY - position.y });
     };
 
-    const handleMouseMove = useCallback((e) => {
+    const handleMouseMove = useCallback((e: MouseEvent) => {
         if (!isDragging) return;
 
         const maxX = window.innerWidth - 100;
@@ -67,82 +83,116 @@ export const FloatingButton = () => {
     const radius = 80;
     const angleIncrement = Math.PI / (subButtonsData.length + 1);
 
-    const [status, setStatus] = useState(null); // null, success, error
-
-    const handleClickToTranslate = async () => {
-        // Select all target elements within <pre> tags for translation
-        const elementsToTranslate = Array.from(document.querySelectorAll('pre p')) as HTMLElement[];
-
-        // Filter to get only top-level <p> elements that don't have the 'top-level-text' class or translated parents
-        const topLevelTextElements = elementsToTranslate.filter(el => {
-            return (
-                el instanceof HTMLElement &&
-                !el.classList.contains('top-level-text') &&
-                !elementsToTranslate.some(parentEl => parentEl !== el && parentEl.contains(el))
-            );
+    // Cập nhật `handleDocumentTranslate` để trả về Promise
+    const handleDocumentTranslate = useCallback((selectionText: string): Promise<any> => {
+        return new Promise((resolve, reject) => {
+            const debouncedHandler = debounce(() => {
+                if (selectionText && chrome.runtime) {
+                    try {
+                        console.log("Sending message to background script with text:", selectionText);
+                        chrome.runtime.sendMessage(
+                            {
+                                action: "translateText",
+                                text: selectionText,
+                            },
+                            (response) => {
+                                console.log("Received translation response:", response);
+                                if (response && response.text) {
+                                    resolve(response); // Trả về kết quả dịch
+                                } else {
+                                    reject("No translation result");
+                                }
+                            }
+                        );
+                    } catch (error) {
+                        console.error("Error in sending message:", error);
+                        reject(error);
+                    }
+                }
+            }, 300);
+            debouncedHandler();
         });
+    }, []);
 
-        // Mark and translate each top-level <p> element
+    // Cập nhật `handleClickToTranslate` để sử dụng `await` với `handleDocumentTranslate`
+    const handleClickToTranslate = async () => {
+        const elementsToTranslate = Array.from(document.querySelectorAll('pre p')) as HTMLElement[];
+        const topLevelTextElements = elementsToTranslate.filter(el => (
+            el instanceof HTMLElement &&
+            !el.classList.contains('top-level-text') &&
+            !elementsToTranslate.some(parentEl => parentEl !== el && parentEl.contains(el))
+        ));
+
         for (const element of topLevelTextElements) {
             try {
-                element.classList.add('top-level-text'); // Add class for identification
-
-                // Clone the node to avoid modifying the original element's content
+                console.log("Starting translation for element:", element);
+                element.classList.add('top-level-text');
                 const cloneNode = element.cloneNode(true) as HTMLElement;
                 cloneNode.querySelectorAll('.num-comment').forEach(child => {
                     if (/^\d+$/.test(child.textContent?.trim() || '')) {
-                        child.remove()
+                        child.remove();
                     }
-                    ;
                 });
 
-                // Split the text by lines, filter out empty lines, and then join back
                 cloneNode.innerText = cloneNode.innerText
                     .split('\n')              // Tách từng dòng
                     .filter(line => line.trim() !== '') // Loại bỏ các dòng trống (sau khi đã loại bỏ khoảng trắng)
-                    .join('\n');              // Ghép lại thành đoạn văn với mỗi dòng là một câu mới
+                    .join('\n');
 
-                // Split the paragraph into sentences
                 const sentences = splitIntoSentences(cloneNode.innerText);
-
-                // Clear the original content to replace it with sentence-by-sentence translations
                 element.innerHTML = '';
 
+                // Duyệt qua từng câu và chờ dịch xong
                 for (let i = 0; i < sentences.length; i++) {
                     const sentence = sentences[i];
-
                     if (sentence.trim()) {
-                        // Translate each sentence individually
-                        const response = await bingTranslate(sentence, 'en', 'vi');
+                        console.log("Translating sentence:", sentence);
+                        // Chờ dịch xong cho từng câu
+                        const translation = await handleDocumentTranslate(sentence);
+                        console.log("Translation completed:", translation);
 
-                        // Create elements for the sentence and its translation
                         const sentenceElement = document.createElement('div');
                         sentenceElement.innerText = sentence;
-                        sentenceElement.style.fontWeight = 'bold'; // Style original sentence
+                        sentenceElement.style.fontWeight = 'bold';
 
                         const translationElement = document.createElement('div');
 
                         // Add "\n\n" only for the last sentence
                         const translationText = (i === sentences.length - 1)
-                            ? response.targetText + "\n\n"
-                            : response.targetText;
+                            ? translation.text  + "\n\n"
+                            : translation.text ;
+                        translationElement.innerText = translationText || "Đang dịch..."; // Hiển thị bản dịch
+                        Object.assign(translationElement.style, { color: 'gray', fontSize: '0.9em' });
 
-                        translationElement.innerText = translationText;
-                        Object.assign(translationElement.style, {color: 'gray', fontSize: '0.9em'}); // Style translated text
-
-                        // Append both elements to the paragraph
                         element.appendChild(sentenceElement);
                         element.appendChild(translationElement);
                     }
                 }
                 setStatus("success");
             } catch (error) {
-                setStatus(error);
-                console.error(`Translation failed for element:`, error);
+                setStatus("error");
+                console.error("Translation failed for element:", error);
             }
         }
     };
 
+    useEffect(() => {
+        const messageListener = (message: { action: string; text: string; sourceLang: string; transliteration: string }) => {
+            if (message.action === "displayTranslation") {
+                console.log("Received translation:", message); // Log dữ liệu nhận được
+                setTranslation({
+                    text: message.text,
+                    sourceLang: message.sourceLang,
+                    transliteration: message.transliteration
+                });
+            }
+        };
+
+        chrome.runtime.onMessage.addListener(messageListener);
+        return () => {
+            chrome.runtime.onMessage.removeListener(messageListener);
+        };
+    }, []);
 
     return (
         <div onMouseEnter={handleMouseEnter}
@@ -157,11 +207,10 @@ export const FloatingButton = () => {
              }}
              onMouseDown={handleMouseDown}
         >
-            {/* Main Button */}
             <div onClick={handleClickToTranslate}
                  className={`relative text-white shadow-xl flex items-center justify-center p-3 rounded-full 
                     ${status === 'success' ? 'bg-green-500' : ''}
-                    ${status === 'error' ? 'bg-red-500' : 'bg-gradient-to-r from-cyan-500 to-blue-500'}`}
+                    ${status === 'error' ? 'bg-red-500' : 'bg-gradient-to-r from-cyan-500 to-blue-500'}` }
             >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
                      stroke="currentColor" className="w-6 h-6 transition-all duration-[0.6s]">
@@ -192,5 +241,4 @@ export const FloatingButton = () => {
             })}
         </div>
     );
-
 };
