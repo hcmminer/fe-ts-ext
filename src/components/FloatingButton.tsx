@@ -21,6 +21,7 @@ export const FloatingButton = () => {
     const [isDragging, setIsDragging] = useState(false);
     const [showSubButtons, setShowSubButtons] = useState(false);
     const [status, setStatus] = useState<"success" | "error" | null>(null);
+    const [isTranslating, setIsTranslating] = useState(false); // Trạng thái kiểm tra đang dịch hay không
 
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const startPos = useRef({ x: 0, y: 0 });
@@ -91,6 +92,14 @@ export const FloatingButton = () => {
 
     // Sử dụng await để gọi handleDocumentTranslate và kiểm tra translation
     const handleClickToTranslate = async () => {
+        if (isTranslating) {
+            // Nếu đang dịch, không làm gì cả
+            return;
+        }
+
+        setIsTranslating(true); // Bắt đầu quá trình dịch
+        setStatus(null); // Đặt lại trạng thái
+
         const elementsToTranslate = Array.from(document.querySelectorAll("pre p")) as HTMLElement[];
         const topLevelTextElements = elementsToTranslate.filter(el =>
             el instanceof HTMLElement && !el.classList.contains("top-level-text") &&
@@ -131,6 +140,7 @@ export const FloatingButton = () => {
                 console.error("Translation failed:", error);
             }
         }
+        setIsTranslating(false); // Đặt lại trạng thái khi dịch hoàn tất
     };
 
     return (
