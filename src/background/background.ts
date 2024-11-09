@@ -1,5 +1,6 @@
 // Khởi tạo menu ngữ cảnh khi extension được cài đặt
 import {bingTranslate} from "../utils/bingTranslate";
+import {TranslationResponse} from "@/src/types/translate";
 
 chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
@@ -20,7 +21,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             // Gửi kết quả dịch đến content script
             chrome.tabs.sendMessage(tab.id, {
                 action: "displayTranslation",
-                text: translation.targetText,
+                targetText: translation.targetText,
                 sourceLang: translation.detectedLang,
                 transliteration: translation.transliteration
             });
@@ -34,12 +35,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "translateText" && message.text) {
         // Gọi API dịch
         bingTranslate(message.text, "auto", "vi")
-            .then((translation) => {
+            .then((translation : TranslationResponse) => {
                 if (translation) {
+                    console.log("translation back", translation)
                     // Gửi kết quả dịch về cho content script và gọi sendResponse để kết thúc
                     chrome.tabs.sendMessage(sender.tab.id, {
                         action: "displayTranslation",
-                        text: translation.targetText,
+                        targetText: translation.targetText,
                         sourceLang: translation.detectedLang,
                         transliteration: translation.transliteration
                     });
@@ -47,7 +49,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     // Kết thúc bằng sendResponse
                     sendResponse({
                         success: true,
-                        text: translation.targetText,
+                        targetText: translation.targetText,
                         sourceLang: translation.detectedLang,
                         transliteration: translation.transliteration,
                     });

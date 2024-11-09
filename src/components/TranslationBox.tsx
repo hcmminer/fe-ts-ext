@@ -1,33 +1,19 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { Card, CardHeader, CardContent, CardTitle } from "../components/ui/card";
-
-export interface TranslationBoxProps {
-    text: string;
-    sourceLang: string;
-    transliteration?: string | null;
-    onClose: () => void;
-}
-
-function debounce(func: { (event: any): void; apply?: any; }, delay: number) {
-    let timer: NodeJS.Timeout;
-    return function (...args: any) {
-        clearTimeout(timer);
-        timer = setTimeout(() => func.apply(this, args), delay);
-    };
-}
+import React, {useEffect, useState, useCallback} from "react";
+import {Card, CardHeader, CardContent, CardTitle} from "../components/ui/card";
+import {TranslationResponse} from "../types/translate";
+import {debounce} from "../utils/debounce";
 
 export const TranslationBox = () => {
-    const [translation, setTranslation] = useState<TranslationBoxProps | null>(null);
+    const [translation, setTranslation] = useState<TranslationResponse>(null);
 
     useEffect(() => {
         // Lắng nghe message từ background script
-        const messageListener = (message: { action: string; text: any; sourceLang: any; transliteration: any; }) => {
+        const messageListener = (message: { action: string; targetText: string; sourceLang: string; transliteration: string; }) => {
             if (message.action === "displayTranslation") {
                 setTranslation({
-                    text: message.text,
+                    targetText: message.targetText,
                     sourceLang: message.sourceLang,
                     transliteration: message.transliteration,
-                    onClose: () => setTranslation(null),
                 });
             }
         };
@@ -79,7 +65,7 @@ export const TranslationBox = () => {
                 <CardTitle>Translation</CardTitle>
             </CardHeader>
             <CardContent>
-                <p><strong>Translation:</strong> {translation.text}</p>
+                <p><strong>Translation:</strong> {translation.targetText}</p>
                 <p><strong>Detected Language:</strong> {translation.sourceLang}</p>
                 {translation.transliteration && (
                     <p><strong>Transliteration:</strong> {translation.transliteration}</p>

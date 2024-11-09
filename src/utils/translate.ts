@@ -1,11 +1,4 @@
-interface TranslationResponse {
-  targetText: string;
-  sourceLang: string;
-  targetLang: string;
-  transliteration?: string | null;
-  pronunciation?: string | null;
-  dict?: string | null;
-}
+import { TranslationResponse } from "../types/translate";
 
 const apiUrl = "https://translate.googleapis.com/translate_a/single";
 

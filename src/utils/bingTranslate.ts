@@ -1,3 +1,5 @@
+import { BingAccessToken, TranslationResponse } from "../types/translate";
+
 // Define the type for Bing language codes mapping
 const bingLangCode: Record<string, string> = {
     auto: "auto-detect",
@@ -75,23 +77,6 @@ const bingLangCode: Record<string, string> = {
     "zh-TW": "zh-Hant",
 };
 
-// Type for Bing access token object
-interface BingAccessToken {
-    IG: string;
-    IID: string;
-    key: string;
-    token: string;
-    tokenTs: number;
-    tokenExpiryInterval: number;
-}
-
-// Type for translation response
-interface TranslationResponse {
-    targetText: string;
-    detectedLang: string;
-    transliteration: string | null;
-}
-
 // Bing access token cache
 let bingAccessToken: BingAccessToken | null = null;
 
@@ -107,7 +92,7 @@ async function getBingAccessToken(): Promise<BingAccessToken | null> {
 
             const IG = data.match(/IG:"([^"]+)"/)?.[1] || "";
             const IID = data.match(/data-iid="([^"]+)"/)?.[1] || "";
-            const [key, token, interval] = JSON.parse(data.match(/params_AbusePreventionHelper\s?=\s?([^\]]+\])/)?.[1] || "[]");
+            const [key, token, interval] = JSON.parse(data.match(/params_AbusePreventionHelper\s?=\s?([^\]]+])/)?.[1] || "[]");
 
             bingAccessToken = {
                 IG,

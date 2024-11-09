@@ -1,18 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { splitIntoSentences } from "../utils/sentenceSplitter";
 import { Icons } from "./icons";
-
-// Định nghĩa kiểu dữ liệu trả về từ hàm dịch
-interface TranslationResponse {
-    text: string;
-}
-
-// Đảm bảo rằng bạn đã có `TranslationBoxProps` định nghĩa kiểu dữ liệu
-export interface TranslationBoxProps {
-    text: string;
-    sourceLang: string;
-    transliteration?: string | null;
-}
+import { TranslationResponse } from "../types/translate";
+import { debounce } from "../utils/debounce";
 
 export const FloatingButton = () => {
     const radius = 80;
@@ -47,7 +37,7 @@ export const FloatingButton = () => {
             setIsDragging(false);
         }
         if (e.type === "mousemove" && isDragging) {
-            setPosition(prevPosition => ({
+            setPosition(() => ({
                 x: Math.min(Math.max(0, e.clientX - startPos.current.x), window.innerWidth - 100),
                 y: Math.min(Math.max(0, e.clientY - startPos.current.y), window.innerHeight - 100),
             }));
@@ -73,9 +63,9 @@ export const FloatingButton = () => {
                     try {
                         chrome.runtime.sendMessage(
                             { action: "translateText", text: selectionText },
-                            (response) => {
-                                if (response && response.text) {
-                                    resolve({ text: response.text });  // Trả về đối tượng có thuộc tính 'text'
+                            (response : TranslationResponse) => {
+                                if (response && response.targetText) {
+                                    resolve({ targetText: response.targetText });  // Trả về đối tượng có thuộc tính 'text'
                                 } else {
                                     reject("No translation result");
                                 }
@@ -117,15 +107,15 @@ export const FloatingButton = () => {
                 element.innerHTML = "";
 
                 for (let i = 0; i < sentences.length; i++) {
-                    const translation = await handleDocumentTranslate(sentences[i]);
+                    const translation : TranslationResponse = await handleDocumentTranslate(sentences[i]);
 
-                    if (translation && translation.text) {
+                    if (translation && translation.targetText) {
                         const sentenceElement = document.createElement("div");
                         sentenceElement.innerText = sentences[i];
                         sentenceElement.style.fontWeight = "bold";
 
                         const translationElement = document.createElement("div");
-                        translationElement.innerText = translation.text + (i === sentences.length - 1 ? "\n\n" : "");
+                        translationElement.innerText = translation.targetText + (i === sentences.length - 1 ? "\n\n" : "");
                         Object.assign(translationElement.style, { color: "gray", fontSize: "0.9em" });
 
                         element.appendChild(sentenceElement);
@@ -182,12 +172,3 @@ export const FloatingButton = () => {
         </div>
     );
 };
-
-// Hàm debounce ngoài component để tránh tái định nghĩa mỗi lần render
-function debounce(func: (event: any) => void, delay: number) {
-    let timer: NodeJS.Timeout;
-    return function (...args: any) {
-        clearTimeout(timer);
-        timer = setTimeout(() => func.apply(this, args), delay);
-    };
-}
