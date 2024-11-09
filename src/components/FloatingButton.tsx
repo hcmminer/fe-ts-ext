@@ -22,7 +22,6 @@ export const FloatingButton = () => {
     const [startPos, setStartPos] = useState({ x: 0, y: 0 });
     const [showSubButtons, setShowSubButtons] = useState(false);
     const [status, setStatus] = useState<"success" | "error" | null>(null);
-    const [translation, setTranslation] = useState<TranslationBoxProps | null>(null);
 
     let timeoutId: NodeJS.Timeout | null = null;
 
@@ -140,6 +139,7 @@ export const FloatingButton = () => {
                     .join('\n');
 
                 const sentences = splitIntoSentences(cloneNode.innerText);
+                // remove original dom
                 element.innerHTML = '';
 
                 // Duyệt qua từng câu và chờ dịch xong
@@ -176,23 +176,6 @@ export const FloatingButton = () => {
         }
     };
 
-    useEffect(() => {
-        const messageListener = (message: { action: string; text: string; sourceLang: string; transliteration: string }) => {
-            if (message.action === "displayTranslation") {
-                console.log("Received translation:", message); // Log dữ liệu nhận được
-                setTranslation({
-                    text: message.text,
-                    sourceLang: message.sourceLang,
-                    transliteration: message.transliteration
-                });
-            }
-        };
-
-        chrome.runtime.onMessage.addListener(messageListener);
-        return () => {
-            chrome.runtime.onMessage.removeListener(messageListener);
-        };
-    }, []);
 
     return (
         <div onMouseEnter={handleMouseEnter}
