@@ -14,12 +14,13 @@ const translate = async (
     // Mock response data
     await new Promise((resolve) => setTimeout(resolve, 300)); // Simulated delay
     return {
+      detectedLang: "", imageUrl: "",
       targetText: `[Translated] ${text}`,
       sourceLang: sourceLang,
       targetLang: targetLang,
       transliteration: null,
       pronunciation: null,
-      dict: null,
+      dict: null
     };
   }
 
@@ -55,12 +56,13 @@ const translate = async (
         .join("\n");
 
     return {
+      detectedLang: "", imageUrl: "",
       targetText,
       transliteration: transliteration || null,
       pronunciation: pronunciation || null,
       dict: dict || null,
       sourceLang: json.src,
-      targetLang,
+      targetLang
     };
   } catch (error) {
     console.error("Translation error:", error);

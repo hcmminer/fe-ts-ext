@@ -8,12 +8,23 @@ export interface BingAccessToken {
     tokenExpiryInterval: number;
 }
 
+export interface TranslationRequest {
+    action?: string;
+    sourceText: string;
+    sourceLang: string;
+    targetLang: string
+}
+
 export interface TranslationResponse {
-    targetText: string;
-    sourceLang?: string;
+    success?: boolean;
+    error?: any,
+    action?: string;
+    targetText?: string;
     detectedLang?: string;
+    transliteration?: string;
+    sourceLang?: string;
     targetLang?: string;
-    transliteration?: string | null;
+    dict?: any;  // Bạn có thể thay đổi `any` thành kiểu dữ liệu cụ thể hơn nếu cần
+    imageUrl?: string;
     pronunciation?: string | null;
-    dict?: string | null;
 }

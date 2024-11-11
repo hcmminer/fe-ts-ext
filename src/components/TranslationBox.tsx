@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useCallback} from "react";
 import {Card, CardHeader, CardContent, CardTitle} from "../components/ui/card";
-import {TranslationResponse} from "../types/translate";
+import {TranslationRequest, TranslationResponse} from "../types/translate";
 import {debounce} from "../utils/debounce";
 
 export const TranslationBox = () => {
@@ -8,13 +8,10 @@ export const TranslationBox = () => {
 
     useEffect(() => {
         // Lắng nghe message từ background script
-        const messageListener = (message: { action: string; targetText: string; sourceLang: string; transliteration: string; }) => {
-            if (message.action === "displayTranslation") {
-                setTranslation({
-                    targetText: message.targetText,
-                    sourceLang: message.sourceLang,
-                    transliteration: message.transliteration,
-                });
+        const messageListener = (translationResponse: TranslationResponse) => {
+            if (translationResponse.action === "displayTranslation") {
+                console.log("translationResponse",translationResponse)
+                setTranslation(translationResponse);
             }
         };
 
@@ -34,10 +31,8 @@ export const TranslationBox = () => {
             if (selection && chrome.runtime) {
                 // Kiểm tra xem extension context có hợp lệ không
                 try {
-                    chrome.runtime.sendMessage({
-                        action: "translateText",
-                        text: selection,
-                    });
+                    const translationRequest: TranslationRequest = {action: "translateText", sourceText: selection, sourceLang: "auto", targetLang: "vi"}
+                    chrome.runtime.sendMessage(translationRequest);
                 } catch (error) {
                     console.error("Error sending message to background script:", error);
                 }
@@ -65,10 +60,32 @@ export const TranslationBox = () => {
                 <CardTitle>Translation</CardTitle>
             </CardHeader>
             <CardContent>
-                <p><strong>Translation:</strong> {translation.targetText}</p>
-                <p><strong>Detected Language:</strong> {translation.sourceLang}</p>
+                {translation.targetText && (
+                    <p><strong>Translation:</strong> {translation.targetText}</p>
+                )}
+                {translation.sourceLang && (
+                    <p><strong>Detected Language:</strong> {translation.sourceLang}</p>
+                )}
                 {translation.transliteration && (
                     <p><strong>Transliteration:</strong> {translation.transliteration}</p>
+                )}
+                {translation.targetLang && (
+                    <p><strong>Target Language:</strong> {translation.targetLang}</p>
+                )}
+                {translation.dict && (
+                    <p><strong>Dictionary:</strong> {JSON.stringify(translation.dict)}</p>
+                )}
+                {translation.imageUrl && (
+                    <p><strong>Image URL:</strong> <a href={translation.imageUrl} target="_blank" rel="noopener noreferrer">{translation.imageUrl}</a></p>
+                )}
+                {translation.pronunciation && (
+                    <p><strong>Pronunciation:</strong> {translation.pronunciation}</p>
+                )}
+                {translation.action && (
+                    <p><strong>Action:</strong> {translation.action}</p>
+                )}
+                {translation.error && (
+                    <p><strong>Error:</strong> {JSON.stringify(translation.error)}</p>
                 )}
             </CardContent>
         </Card>

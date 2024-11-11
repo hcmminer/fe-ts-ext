@@ -1,4 +1,4 @@
-import { BingAccessToken, TranslationResponse } from "../types/translate";
+import {BingAccessToken, TranslationRequest, TranslationResponse} from "../types/translate";
 
 // Define the type for Bing language codes mapping
 const bingLangCode: Record<string, string> = {
@@ -112,9 +112,7 @@ async function getBingAccessToken(): Promise<BingAccessToken | null> {
 
 // Function to translate text using Bing Translate API
 async function bingTranslate(
-    text: string,
-    sourceLang: string,
-    targetLang: string
+    translationRequest: TranslationRequest
 ): Promise<TranslationResponse | null> {
     try {
         const accessToken = await getBingAccessToken();
@@ -122,13 +120,16 @@ async function bingTranslate(
 
         const { token, key, IG, IID } = accessToken;
 
+        const {sourceText, sourceLang, targetLang} = translationRequest;
+
         const response = await fetch(bingBaseUrl, {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
             },
+
             body: new URLSearchParams({
-                text,
+                text: sourceText,
                 fromLang: bingLangCode[sourceLang] || sourceLang,
                 to: bingLangCode[targetLang] || targetLang,
                 token,
@@ -140,6 +141,7 @@ async function bingTranslate(
         });
 
         const responseData = await response.json();
+        console.log("responseData", responseData)
 
         // Parse response
         const targetText = responseData[0]?.translations[0]?.text || "";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { splitIntoSentences } from "../utils/sentenceSplitter";
 import { Icons } from "./icons";
-import { TranslationResponse } from "../types/translate";
+import {TranslationRequest, TranslationResponse} from "../types/translate";
 import { debounce } from "../utils/debounce";
 
 export const FloatingButton = () => {
@@ -61,11 +61,12 @@ export const FloatingButton = () => {
             const debouncedHandler = debounce(() => {
                 if (selectionText && chrome.runtime) {
                     try {
+                        const translationRequest: TranslationRequest = {action: "translateText", sourceText: selectionText, sourceLang: "auto", targetLang: "vi"}
                         chrome.runtime.sendMessage(
-                            { action: "translateText", text: selectionText },
+                            translationRequest,
                             (response : TranslationResponse) => {
                                 if (response && response.targetText) {
-                                    resolve({ targetText: response.targetText });  // Trả về đối tượng có thuộc tính 'text'
+                                    resolve(response);
                                 } else {
                                     reject("No translation result");
                                 }

@@ -1,6 +1,6 @@
 // Khởi tạo menu ngữ cảnh khi extension được cài đặt
 import {bingTranslate} from "../utils/bingTranslate";
-import {TranslationResponse} from "@/src/types/translate";
+import {TranslationRequest, TranslationResponse} from "../types/translate";
 
 chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
@@ -14,53 +14,51 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === "translateText" && info.selectionText) {
         // Dịch văn bản đã chọn
-        const translation = await bingTranslate(info.selectionText, "auto", "vi");
+        const translationRequest : TranslationRequest = {sourceText : info.selectionText, sourceLang : "auto" , targetLang: "vi"};
+        const bingTranslateResponse = await bingTranslate(translationRequest);
 
         // Kiểm tra xem có nhận được kết quả dịch không
-        if (translation) {
+        if (bingTranslateResponse) {
             // Gửi kết quả dịch đến content script
-            chrome.tabs.sendMessage(tab.id, {
-                action: "displayTranslation",
-                targetText: translation.targetText,
-                sourceLang: translation.detectedLang,
-                transliteration: translation.transliteration
-            });
-        } else {
-            console.error("Translation failed.");
+            const translationResponse = await bingTranslate(translationRequest);
+            chrome.tabs.sendMessage(tab.id, bingTranslateResponse);
         }
     }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === "translateText" && message.text) {
+chrome.runtime.onMessage.addListener((translationRequest: TranslationRequest, sender, sendResponse) => {
+    if (translationRequest.action === "translateText" && translationRequest.sourceText) {
         // Gọi API dịch
-        bingTranslate(message.text, "auto", "vi")
+        bingTranslate(translationRequest)
             .then((translation : TranslationResponse) => {
                 if (translation) {
-                    console.log("translation back", translation)
+                    console.log("translation", translation)
                     // Gửi kết quả dịch về cho content script và gọi sendResponse để kết thúc
-                    chrome.tabs.sendMessage(sender.tab.id, {
+                    const translationResponse: TranslationResponse = {
+                        success: true,
                         action: "displayTranslation",
                         targetText: translation.targetText,
                         sourceLang: translation.detectedLang,
                         transliteration: translation.transliteration
-                    });
+                    }
+                    chrome.tabs.sendMessage(sender.tab.id, translationResponse);
 
                     // Kết thúc bằng sendResponse
-                    sendResponse({
-                        success: true,
-                        targetText: translation.targetText,
-                        sourceLang: translation.detectedLang,
-                        transliteration: translation.transliteration,
-                    });
+                    sendResponse(translationResponse);
                 } else {
-                    console.error("Translation failed.");
-                    sendResponse({ success: false, error: "Translation failed" });
+                    const translationResponse: TranslationResponse = {
+                        success: false,
+                        error: "Translation failed"
+                    }
+                    sendResponse(translationResponse);
                 }
             })
             .catch((error) => {
-                console.error("Error during translation:", error);
-                sendResponse({ success: false, error: error.message });
+                const translationResponse: TranslationResponse = {
+                    success: false,
+                    error: "Translation failed"
+                }
+                sendResponse(translationResponse);
             });
 
         // return true để giữ kênh mở
