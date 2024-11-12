@@ -59,13 +59,15 @@ export const FloatingButton = () => {
     const handleDocumentTranslate = useCallback((selectionText: string): Promise<TranslationResponse> => {
         return new Promise((resolve, reject) => {
             const debouncedHandler = debounce(() => {
-                if (selectionText && chrome.runtime) {
+                if (selectionText) {
                     try {
-                        const translationRequest: TranslationRequest = {action: "translate", text: selectionText, sourceLang: "auto", targetLang: "vi", engine: "googleV2"}
+                        const translationRequest: TranslationRequest = {action: "translate", text: selectionText, sourceLang: "auto", targetLang: "vi", engine: "google"}
+                        console.log("translationRequest@",translationRequest)
                         chrome.runtime.sendMessage(
                             translationRequest,
                             (response : TranslationResponse) => {
-                                if (response && response.targetText) {
+                                if (response) {
+                                    console.log("res@", response)
                                     resolve(response);
                                 } else {
                                     reject("No translation result");
@@ -73,6 +75,7 @@ export const FloatingButton = () => {
                             }
                         );
                     } catch (error) {
+                        console.error("error@",error)
                         reject(error);
                     }
                 }
@@ -128,7 +131,6 @@ export const FloatingButton = () => {
                 setStatus("success");
             } catch (error) {
                 setStatus("error");
-                console.error("Translation failed:", error);
             }
         }
         setIsTranslating(false); // Đặt lại trạng thái khi dịch hoàn tất

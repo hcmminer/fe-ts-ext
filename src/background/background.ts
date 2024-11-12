@@ -34,8 +34,9 @@ function setupEventListeners() {
 
 // Listen for messages from content and popup scripts
 function addMessageListener() {
-    browser.runtime.onMessage.addListener(async (request: any, sender: Runtime.MessageSender, sendResponse: Function) => {
+    chrome.runtime.onMessage.addListener(async (request: any, sender: Runtime.MessageSender, sendResponse: Function) => {
         try {
+            console.log("resquest to background@", request)
             switch (request.type) {
                 case "translate":
                     const translation = await translateWithReverse(request.data);
@@ -87,7 +88,7 @@ async function translate({ text, sourceLang, targetLang, engine }: TranslationRe
 const getTranslateCached = util.cacheFn(getTranslate);
 
 async function getTranslate(text: string, sourceLang: string, targetLang: string, engine: string) {
-    return translator[engine].translate(text, sourceLang, targetLang);
+    return translator["google"].translate(text, sourceLang, targetLang);
 }
 
 async function translateWithReverse(request: TranslationRequest) {

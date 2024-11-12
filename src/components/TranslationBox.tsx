@@ -31,7 +31,7 @@ export const TranslationBox = () => {
             if (selection && chrome.runtime) {
                 // Kiểm tra xem extension context có hợp lệ không
                 try {
-                    const translationRequest: TranslationRequest = {action: "translate", text: selection, sourceLang: "auto", targetLang: "vi", engine: "googleV2"}
+                    const translationRequest: TranslationRequest = {action: "translate", text: selection, sourceLang: "auto", targetLang: "vi", engine: "google"}
                     chrome.runtime.sendMessage(translationRequest);
                 } catch (error) {
                     console.error("Error sending message to background script:", error);
