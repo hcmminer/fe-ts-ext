@@ -3,7 +3,7 @@ import { TranslationResponse } from "../types/translate";
 const apiUrl = "https://translate.googleapis.com/translate_a/single";
 
 // Utility translate function with optional mock behavior
-const translate = async (
+const googleTranslateV1 = async (
     text: string,
     sourceLang: string,
     targetLang: string,
@@ -70,4 +70,4 @@ const translate = async (
   }
 };
 
-export { translate };
+export { googleTranslateV1 };
