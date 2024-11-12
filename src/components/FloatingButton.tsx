@@ -61,7 +61,7 @@ export const FloatingButton = () => {
             const debouncedHandler = debounce(() => {
                 if (selectionText && chrome.runtime) {
                     try {
-                        const translationRequest: TranslationRequest = {action: "translate", text: selectionText, sourceLang: "auto", targetLang: "vi"}
+                        const translationRequest: TranslationRequest = {action: "translate", text: selectionText, sourceLang: "auto", targetLang: "vi", engine: "googleV2"}
                         chrome.runtime.sendMessage(
                             translationRequest,
                             (response : TranslationResponse) => {
