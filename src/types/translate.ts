@@ -29,6 +29,7 @@ export interface TranslationResponse {
     dict?: any;  // Bạn có thể thay đổi `any` thành kiểu dữ liệu cụ thể hơn nếu cần
     imageUrl?: string;
     pronunciation?: string | null;
+    isBroken?: boolean;
 }
 
 export interface PlayTtsRequest {
