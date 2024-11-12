@@ -4,24 +4,7 @@ import browser, { Runtime, Tabs } from "webextension-polyfill";
 import translator from "../translator/index.js";
 import tts from "../tts/index.js";
 import * as util from "../util";
-
-interface TranslationRequest {
-    text: string;
-    sourceLang: string;
-    targetLang: string;
-    reverseLang?: string;
-    engine?: string;
-}
-
-interface PlayTtsRequest {
-    sourceText: string;
-    sourceLang: string;
-    targetText: string;
-    targetLang: string;
-    voiceTarget?: string;
-    voiceRepeat?: number;
-    timestamp?: number;
-}
+import {PlayTtsRequest, TranslationRequest} from "../types/translate";
 
 let setting: any;
 let recentTranslated: string = "";
@@ -189,22 +172,33 @@ function requestCopyForTargetText() {
 }
 
 // Content script reinjection after upgrade or install
+// Content script reinjection after upgrade or install
 async function injectContentScriptForAllTabs() {
     browser.runtime.onInstalled.addListener(async (details) => {
         if (util.checkInDevMode()) return;
+
+        // Loop through each content script specified in the manifest
         for (const cs of browser.runtime.getManifest().content_scripts || []) {
             for (const tab of await browser.tabs.query({ url: cs.matches })) {
+                // Skip if the tab URL matches specific system pages
                 if (/^(chrome:\/\/|edge:\/\/|file:\/\/|https:\/\/chrome\.google\.com|https:\/\/chromewebstore\.google\.com|chrome-extension:\/\/)/.test(tab.url)) continue;
+
                 try {
-                    if (cs.css) browser.scripting.insertCSS({ target: { tabId: tab.id }, files: cs.css });
-                    if (cs.js) browser.scripting.executeScript({ target: { tabId: tab.id }, files: cs.js });
+                    // Inject only JavaScript, as CSS is not needed
+                    if (cs.js) {
+                        await browser.scripting.executeScript({
+                            target: { tabId: tab.id },
+                            files: cs.js,
+                        });
+                    }
                 } catch (error) {
-                    console.error("Error injecting content scripts:", error);
+                    console.error("Error injecting content script:", error);
                 }
             }
         }
     });
 }
+
 
 function addInstallUrl(url: string) {
     browser.runtime.onInstalled.addListener(details => {

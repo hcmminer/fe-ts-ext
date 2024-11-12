@@ -10,9 +10,11 @@ export interface BingAccessToken {
 
 export interface TranslationRequest {
     action?: string;
-    sourceText: string;
+    text: string;
     sourceLang: string;
-    targetLang: string
+    targetLang: string;
+    reverseLang?: string;
+    engine?: string;
 }
 
 export interface TranslationResponse {
@@ -27,4 +29,14 @@ export interface TranslationResponse {
     dict?: any;  // Bạn có thể thay đổi `any` thành kiểu dữ liệu cụ thể hơn nếu cần
     imageUrl?: string;
     pronunciation?: string | null;
+}
+
+export interface PlayTtsRequest {
+    sourceText: string;
+    sourceLang: string;
+    targetText: string;
+    targetLang: string;
+    voiceTarget?: string;
+    voiceRepeat?: number;
+    timestamp?: number;
 }
