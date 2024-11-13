@@ -1,7 +1,8 @@
 // Khởi tạo menu ngữ cảnh khi extension được cài đặt
 import {bingTranslate} from "../utils/bingTranslate";
 import {TranslationRequest, TranslationResponse} from "../types/translate";
-import {googleTranslateV1} from "../utils/translate";
+import {googleTranslateV1} from "../utils/googleTranslateV1";
+import {googleWeb} from "../utils/googleWeb";
 
 chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
@@ -30,7 +31,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 chrome.runtime.onMessage.addListener((translationRequest: TranslationRequest, sender, sendResponse) => {
     if (translationRequest.type === "translateText" && translationRequest.text) {
         // Call translation API
-        googleTranslateV1(translationRequest)
+        googleWeb(translationRequest)
             .then((translation: TranslationResponse) => {
                 sendResponse({
                     success: !!translation,
