@@ -6,33 +6,22 @@ import {debounce} from "../utils/debounce";
 export const TranslationBox = () => {
     const [translation, setTranslation] = useState<TranslationResponse>(null);
 
-    useEffect(() => {
-        // Lắng nghe message từ background script
-        const messageListener = (translationResponse: TranslationResponse) => {
-            if (translationResponse.action === "displayTranslation") {
-                console.log("translationResponse",translationResponse)
-                setTranslation(translationResponse);
-            }
-        };
-
-        // Đăng ký listener
-        chrome.runtime.onMessage.addListener(messageListener);
-
-        // Hủy listener khi component bị unmounted
-        return () => {
-            chrome.runtime.onMessage.removeListener(messageListener);
-        };
-    }, []);
-
     // Debounced function to handle document click events
     const handleDocumentClick = useCallback(
-        debounce((event) => {
+        debounce( (event) => {
             const selection = window.getSelection()?.toString().trim();
             if (selection && chrome.runtime) {
                 // Kiểm tra xem extension context có hợp lệ không
                 try {
-                    const translationRequest: TranslationRequest = {type: "translateText", text: selection, sourceLang: "auto", targetLang: "vi"}
-                    chrome.runtime.sendMessage(translationRequest);
+                    const translationRequest: TranslationRequest = {
+                        type: "translateText",
+                        text: selection,
+                        sourceLang: "auto",
+                        targetLang: "vi"
+                    }
+                    chrome.runtime.sendMessage(translationRequest, (response : TranslationResponse) => {
+                        setTranslation(response)
+                    })
                 } catch (error) {
                     console.error("Error sending message to background script:", error);
                 }

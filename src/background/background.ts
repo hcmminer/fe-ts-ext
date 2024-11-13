@@ -42,7 +42,6 @@ chrome.runtime.onMessage.addListener((translationRequest: TranslationRequest, se
                         sourceLang: translation.detectedLang,
                         transliteration: translation.transliteration
                     }
-                    chrome.tabs.sendMessage(sender.tab.id, translationResponse);
 
                     // Kết thúc bằng sendResponse
                     sendResponse(translationResponse);
@@ -63,8 +62,9 @@ chrome.runtime.onMessage.addListener((translationRequest: TranslationRequest, se
             });
 
         // return true để giữ kênh mở
-        return true;
+
     }
+    return true;
 });
 
 
