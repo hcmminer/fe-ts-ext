@@ -29,42 +29,24 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 chrome.runtime.onMessage.addListener((translationRequest: TranslationRequest, sender, sendResponse) => {
     if (translationRequest.type === "translateText" && translationRequest.text) {
-        // Gọi API dịch
+        // Call translation API
         googleTranslateV1(translationRequest)
-            .then((translation : TranslationResponse) => {
-                if (translation) {
-                    console.log("translation", translation)
-                    // Gửi kết quả dịch về cho content script và gọi sendResponse để kết thúc
-                    const translationResponse: TranslationResponse = {
-                        success: true,
-                        action: "displayTranslation",
-                        targetText: translation.targetText,
-                        sourceLang: translation.detectedLang,
-                        transliteration: translation.transliteration
-                    }
-
-                    // Kết thúc bằng sendResponse
-                    sendResponse(translationResponse);
-                } else {
-                    const translationResponse: TranslationResponse = {
-                        success: false,
-                        error: "Translation failed"
-                    }
-                    sendResponse(translationResponse);
-                }
+            .then((translation: TranslationResponse) => {
+                sendResponse({
+                    success: !!translation,
+                    action: translation ? "displayTranslation" : undefined,
+                    targetText: translation?.targetText,
+                    sourceLang: translation?.detectedLang,
+                    transliteration: translation?.transliteration,
+                    error: translation ? undefined : "Translation failed"
+                });
             })
-            .catch((error) => {
-                const translationResponse: TranslationResponse = {
-                    success: false,
-                    error: "Translation failed"
-                }
-                sendResponse(translationResponse);
-            });
+            .catch(() => sendResponse({ success: false, error: "Translation failed" }));
 
-        // return true để giữ kênh mở
-
+        // Keep the message channel open for async response
+        return true;
     }
-    return true;
 });
+
 
 
