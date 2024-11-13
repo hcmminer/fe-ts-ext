@@ -14,7 +14,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === "translateText" && info.selectionText) {
         // Dịch văn bản đã chọn
-        const translationRequest : TranslationRequest = {sourceText : info.selectionText, sourceLang : "auto" , targetLang: "vi"};
+        const translationRequest : TranslationRequest = {text : info.selectionText, sourceLang : "auto" , targetLang: "vi"};
         const bingTranslateResponse = await bingTranslate(translationRequest);
 
         // Kiểm tra xem có nhận được kết quả dịch không
@@ -27,7 +27,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 });
 
 chrome.runtime.onMessage.addListener((translationRequest: TranslationRequest, sender, sendResponse) => {
-    if (translationRequest.action === "translateText" && translationRequest.sourceText) {
+    if (translationRequest.type === "translateText" && translationRequest.text) {
         // Gọi API dịch
         bingTranslate(translationRequest)
             .then((translation : TranslationResponse) => {

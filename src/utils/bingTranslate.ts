@@ -120,7 +120,7 @@ async function bingTranslate(
 
         const { token, key, IG, IID } = accessToken;
 
-        const {sourceText, sourceLang, targetLang} = translationRequest;
+        const {text, sourceLang, targetLang} = translationRequest;
 
         const response = await fetch(bingBaseUrl, {
             method: "POST",
@@ -129,7 +129,7 @@ async function bingTranslate(
             },
 
             body: new URLSearchParams({
-                text: sourceText,
+                text,
                 fromLang: bingLangCode[sourceLang] || sourceLang,
                 to: bingLangCode[targetLang] || targetLang,
                 token,

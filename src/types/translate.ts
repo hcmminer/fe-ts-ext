@@ -9,8 +9,8 @@ export interface BingAccessToken {
 }
 
 export interface TranslationRequest {
-    action?: string;
-    sourceText: string;
+    type?: string;
+    text: string;
     sourceLang: string;
     targetLang: string
 }
