@@ -1,37 +1,19 @@
-import { TranslationResponse } from "../types/translate";
+import {TranslationRequest, TranslationResponse} from "../types/translate";
 
 const apiUrl = "https://translate.googleapis.com/translate_a/single";
 
 // Utility translate function with optional mock behavior
 const googleTranslateV1 = async (
-    text: string,
-    sourceLang: string,
-    targetLang: string,
-    langCodeJson: Record<string, string> = {},
-    mock: boolean = false
+    request: TranslationRequest
 ): Promise<TranslationResponse | null> => {
-  if (mock) {
-    // Mock response data
-    await new Promise((resolve) => setTimeout(resolve, 300)); // Simulated delay
-    return {
-      detectedLang: "", imageUrl: "",
-      targetText: `[Translated] ${text}`,
-      sourceLang: sourceLang,
-      targetLang: targetLang,
-      transliteration: null,
-      pronunciation: null,
-      dict: null
-    };
-  }
-
   // Prepare API call with required params
   const params = new URLSearchParams({
     client: "gtx",
-    q: text,
-    sl: sourceLang,
-    tl: targetLang,
+    q: request.text,
+    sl: request.sourceLang,
+    tl: request.targetLang,
     dj: "1",
-    hl: targetLang,
+    hl: request.targetLang,
   }).toString() + "&dt=rm&dt=bd&dt=t&dt=qc&dt=ss";
 
   try {
@@ -61,8 +43,7 @@ const googleTranslateV1 = async (
       transliteration: transliteration || null,
       pronunciation: pronunciation || null,
       dict: dict || null,
-      sourceLang: json.src,
-      targetLang
+      sourceLang: json.src
     };
   } catch (error) {
     console.error("Translation error:", error);
