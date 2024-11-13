@@ -1,8 +1,8 @@
 {
-  "name": "Weather Extension",
-  "description": "Weather Extension in React!",
-  "version": "1.0.0",
   "manifest_version": 3,
+  "version": "0.1.89",
+  "name": "__MSG_appName__",
+  "description": "__MSG_appDesc__",
   "icons": {
     "16": "icon.png",
     "48": "icon.png",
@@ -13,12 +13,6 @@
     "default_title": "Weather Extension",
     "default_icon": "icon.png"
   },
-  "permissions": ["alarms", "contextMenus", "storage",  "scripting", "activeTab"],
-  "host_permissions": [
-    "https://www.bing.com/*",
-    "https://*/*",
-    "http://*/*"
-  ],
   "options_page": "options.html",
   "background": {
     "service_worker": "background.js"
@@ -28,5 +22,16 @@
       "matches": ["<all_urls>"],
       "js": ["contentScript.js"]
     }
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval' ;  object-src 'none'"
+  },
+  "permissions": ["storage", "tts", "tabs", "scripting", "contextMenus", "offscreen", "search"],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "web_accessible_resources": [{
+    "resources": ["pdfjs/web/viewer.html", "ocr.html", "opencvHandler.html", "googleDocInject.js","subtitle.js"],
+    "matches": ["<all_urls>"]
+  }]
 }

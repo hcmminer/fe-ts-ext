@@ -32,11 +32,21 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.0",
+    "async-wait-until": "^2.0.12",
+    "bcp-47": "^2.1.0",
+    "cheerio": "^1.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "crypto-js": "^4.2.0",
+    "delay": "^6.0.0",
+    "franc": "^6.2.0",
+    "is-url": "^1.2.4",
+    "iso-639-3": "^3.0.1",
     "ky": "^1.7.2",
     "lucide-react": "^0.454.0",
     "tailwind-merge": "^2.5.4",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "uuid": "^11.0.3",
+    "webextension-polyfill": "^0.12.0"
   }
 }
