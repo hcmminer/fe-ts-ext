@@ -33,6 +33,7 @@ chrome.runtime.onMessage.addListener((translationRequest: TranslationRequest, se
         // Call translation API
         googleWeb(translationRequest)
             .then((translation: TranslationResponse) => {
+                console.log("translation", translation);
                 sendResponse({
                     success: !!translation,
                     action: translation ? "displayTranslation" : undefined,
